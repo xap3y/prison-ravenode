@@ -1,0 +1,10 @@
+
+prefix: "&7[&bPrison&7] &r"
+
+lobby:
+    world: "world"
+    x: 0
+    y: 100
+    z: 0
+    yaw: 0
+    pitch: 0

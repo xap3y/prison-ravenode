@@ -1,0 +1,9 @@
+name: Prison
+version: '1.0'
+main: eu.xap3y.prison.Prison
+api-version: '1.20'
+authors: [ XAP3Y ]
+description: Prison minigame
+website: https://ravenode.nl
+
+#softdepend: [PlaceholderAPI]
