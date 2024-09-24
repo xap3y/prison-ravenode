@@ -45,18 +45,32 @@ public class BlockBreakListener implements Listener {
 
         Block block = StorageManager.getBlock(mat);
 
+
+        if (block == null)
+            return;
+
+        if (PlayerStorage.economy.get(event.getPlayer().getUniqueId()).getLevel() < block.getLevel()) {
+            event.setCancelled(true);
+            Utils.displayAction(event.getPlayer(), "§cYou need to be at least level " + block.getLevel() + " to mine this block!", 20);
+
+            event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.ENTITY_VILLAGER_NO, 0.5f, 1);
+            return;
+        }
+
         event.getPlayer().getInventory().addItem(new ItemStack(Utils.remapDrop(event.getBlock().getType()), 1));
 
         event.setDropItems(false);
 
-        if (block == null) {
-            return;
-        }
-
         // Give rewards
-        Utils.displayAction(event.getPlayer(), "§a+ " + block.getXp() + " XP  |  §6+ " + block.getCoins() + " $", 60);
+        final double multiplier = LevelService.playerCache.getMultiplier(event.getPlayer().getUniqueId());
+        final double xp = block.getXp() * multiplier;
+        final double coins = block.getCoins() * multiplier;
+
+        Utils.displayAction(event.getPlayer(), "§a+ " + xp + " XP  &r|  §6+ " + coins + " $", 60);
+        PlayerStorage.add(event.getPlayer().getUniqueId(), xp, coins);
+
+
         event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-        PlayerStorage.add(event.getPlayer().getUniqueId(), block.getXp(), block.getCoins());
         BoardService.updateBoard(event.getPlayer().getUniqueId());
         LevelService.checkLevel(event.getPlayer().getUniqueId());
     }

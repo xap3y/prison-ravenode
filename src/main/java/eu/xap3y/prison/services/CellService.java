@@ -5,20 +5,19 @@ import eu.xap3y.prison.api.enums.CellType;
 import eu.xap3y.prison.storage.PlayerStorage;
 import eu.xap3y.prison.storage.StorageManager;
 import eu.xap3y.prison.storage.dto.Cell;
-import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class CellService {
 
-    private static final Map<CellType, Cell> cellMapper = new HashMap<>() {{
+    public static final Map<CellType, Cell> cellMapper = new HashMap<>() {{
+
+        // TODO: Load all cells from json file
         put(CellType.STARTER, new Cell(
                 "&8Starter Mine",
                 null,
@@ -84,6 +83,8 @@ public class CellService {
                 null
                 )
         );
+
+        // TODO: Secret mine
     }};
 
 
@@ -94,19 +95,20 @@ public class CellService {
     public static void loadCellsLocs() {
         for (CellType cellType : cellMapper.keySet()) {
 
-            Prison.texter.console("-- Loading cell " + cellType.name());
+            //Prison.texter.console("-- Loading cell " + cellType.name());
 
             Cell cell = cellMapper.get(cellType);
             Location spawn = Prison.INSTANCE.getConfig().getLocation("mines." + cellType.name().toLowerCase() + ".spawn");
             Location pos1 = Prison.INSTANCE.getConfig().getLocation("mines." + cellType.name().toLowerCase() + ".area.loc1");
             Location pos2 = Prison.INSTANCE.getConfig().getLocation("mines." + cellType.name().toLowerCase() + ".area.loc2");
 
-            Prison.texter.console("SPAWN: " + spawn);
-            Prison.texter.console("LOC1: " + pos1);
-            Prison.texter.console("LOC2: " + pos2);
+            //Prison.texter.console("SPAWN: " + spawn);
+            //Prison.texter.console("LOC1: " + pos1);
+            //Prison.texter.console("LOC2: " + pos2);
             cell.setSpawn(spawn);
             cell.setPos1(pos1);
             cell.setPos2(pos2);
+            cell.refreshLocs();
 
             /*cell.setBlocks(new Blocks(new HashMap<>() {{
                 put(Material.STONE, new Block(1, 1, 1));
@@ -128,13 +130,24 @@ public class CellService {
         Location pos2 = cell.getPos2();
         Material[] mats = StorageManager.getBlocks().get(p0);
 
+        Bukkit.getScheduler().runTaskAsynchronously(Prison.INSTANCE, () -> {
+            Bukkit.getOnlinePlayers().forEach((Player) -> {
+                //TODO: Clone position of looped player and subtract 1 from its Y-axis and then check
+                if (cell.isInside(Player.getLocation())) {
+
+                    // Get the fucking player out before he die to suffocation
+                    Bukkit.getScheduler().runTask(Prison.INSTANCE, () -> Player.teleport(cell.getSpawn()));
+                }
+            });
+        });
+
         FillService temp = new FillService(pos1, pos2, mats);
 
         temp.start();
 
-        // Material and its percentage
+        /* Material and its percentage
 
-        /*AtomicReference<Integer> buffer = new AtomicReference<>(0);
+        AtomicReference<Integer> buffer = new AtomicReference<>(0);
 
         Bukkit.getScheduler().runTaskAsynchronously(Prison.INSTANCE, new Runnable() {
             @SneakyThrows

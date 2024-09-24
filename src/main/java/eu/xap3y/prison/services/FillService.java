@@ -2,12 +2,14 @@ package eu.xap3y.prison.services;
 
 import eu.xap3y.prison.Prison;
 import lombok.Data;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public @Data class FillService {
+
+    // 120ms delay between each row fill
+    private static final int FILL_DELAY = 120;
 
     private Location loc1;
     private Location loc2;
@@ -31,12 +33,12 @@ public @Data class FillService {
         new BukkitRunnable() {
             @Override
             public void run() {
-                Prison.texter.console("RUNNING FILLER");
+                Prison.texter.console("RUNNING FILLER");//DEBUG
                 for(int y = startY; y <= endY;y++) {
-                    Prison.texter.console("Filling row " + y);
+                    Prison.texter.console("Filling row " + y);// DEBUG
                     fillRow(y);
                     try {
-                        Thread.sleep(120);
+                        Thread.sleep(FILL_DELAY);
                     } catch (InterruptedException e) {
                         // IGNORE
                     }
@@ -52,6 +54,7 @@ public @Data class FillService {
         int startZ = Math.min(loc1.getBlockZ(), loc2.getBlockZ());
         int endZ = Math.max(loc1.getBlockZ(), loc2.getBlockZ());
 
+        // Legacy
         /*for (int x = loc1.getBlockX(); x <= loc2.getBlockX(); x++) {
             for (int z = loc1.getBlockZ(); z <= loc2.getBlockZ(); z++) {
                 Material random = mats[(int) (Math.random() * mats.length)];
@@ -65,13 +68,13 @@ public @Data class FillService {
             @Override
             public void run() {
                 if (currentX > endX) {
-                    Prison.texter.console("Cancelling filler");
+                    Prison.texter.console("Cancelling filler");// DEBUG
                     cancel();
                     return;
                 }
                 for (int z = startZ; z <= endZ; z++) {
                     Material random = mats[(int) (Math.random() * mats.length)];
-                    Prison.texter.console("Setting block at " + currentX + " " + y + " " + z + " to " + random);
+                    Prison.texter.console("Setting block at " + currentX + " " + y + " " + z + " to " + random);// DEBUG
                     loc1.getWorld().getBlockAt(currentX, y, z).setType(random);
                 }
                 currentX++;

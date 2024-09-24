@@ -2,12 +2,9 @@ package eu.xap3y.prison.storage.dto;
 
 import kotlin.Triple;
 import lombok.Data;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-
 import java.util.List;
 
+// Why is it called Arena instead of cell?
 public @Data class Arena {
 
     private final String name;

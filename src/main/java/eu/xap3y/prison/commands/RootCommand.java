@@ -2,10 +2,12 @@ package eu.xap3y.prison.commands;
 
 import eu.xap3y.prison.Prison;
 import eu.xap3y.prison.api.enums.CellType;
+import eu.xap3y.prison.api.gui.CellGui;
 import eu.xap3y.prison.services.CellService;
 import eu.xap3y.prison.services.LevelService;
 import eu.xap3y.prison.storage.ConfigDb;
 import eu.xap3y.prison.storage.PlayerStorage;
+import eu.xap3y.prison.storage.dto.Cell;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.annotations.Argument;
@@ -19,6 +21,19 @@ public class RootCommand {
     @CommandDescription("Main Prison command")
     public void rootCommand(CommandSender p0) {
         Prison.texter.response(p0, "Prison plugin for ravenode v" + Prison.ver + "  main: " + Prison.main);
+    }
+
+    @Command("prison menu")
+    @CommandDescription("Open the prison menu")
+    public void openMenu(
+            CommandSender p0
+    ) {
+        if (!(p0 instanceof Player player)) {
+            Prison.texter.response(p0, ConfigDb.ONLY_PLAYER);
+            return;
+        }
+
+        CellGui.openGui(player);
     }
 
     @Command("prison setlobby")
@@ -52,6 +67,8 @@ public class RootCommand {
             Prison.texter.response(p0, "&cInvalid mine type &7(&c/prison setspawn <cell>&7)");
             return;
         }
+
+        CellService.cellMapper.get(cell).setSpawn(player.getLocation());
 
         Prison.INSTANCE.getConfig().set("mines." + cell.name().toLowerCase() + ".spawn", player.getLocation());
         Prison.INSTANCE.saveConfig();
@@ -94,6 +111,9 @@ public class RootCommand {
             return;
         }
 
+        Cell temp = CellService.cellMapper.get(cell);
+        temp.setPos1(ConfigDb.loc1);
+        temp.setPos2(ConfigDb.loc2);
         Prison.INSTANCE.getConfig().set("mines." + cell.name().toLowerCase() + ".area.loc1", ConfigDb.loc1);
         Prison.INSTANCE.getConfig().set("mines." + cell.name().toLowerCase() + ".area.loc2", ConfigDb.loc2);
         Prison.INSTANCE.saveConfig();
@@ -121,6 +141,7 @@ public class RootCommand {
         Prison.texter.response(p0, "&fMine &e" + cell.name().toLowerCase() + " &freset");
     }
 
+    // This should not be used at all
     @Command("prison resetAll")
     @CommandDescription("Reset all cells")
     @Permission(value = {"prison.reset", "prison.*"}, mode = Permission.Mode.ANY_OF)
@@ -147,12 +168,14 @@ public class RootCommand {
             return;
         }
 
-        double xpLeft = LevelService.playerCacheXp.get(player.getUniqueId()) - PlayerStorage.economy.get(player.getUniqueId()).getXp();
+        double xpLeft = LevelService.playerCache.get(player.getUniqueId()).getLeft() - PlayerStorage.economy.get(player.getUniqueId()).getXp();
 
         String progress = LevelService.shortProgress(player.getUniqueId(), 20, '&');
 
-        Prison.texter.response(p0, "&fYour level: &e" + PlayerStorage.economy.get(player.getUniqueId()).getLevel() + " &8(&e" + xpLeft + " &7XP left to level up&8)");
-        Prison.texter.response(p0, " &f⤷ Next level: &7[&r" + progress + "&7] &e");
+        double multiplier = LevelService.playerCache.getMultiplier(player.getUniqueId());
+        int percent = (int) ((PlayerStorage.economy.get(player.getUniqueId()).getXp() / LevelService.playerCache.getRequiredXp(player.getUniqueId())) * 100);
+        Prison.texter.response(p0, "&fYour level: &e" + PlayerStorage.economy.get(player.getUniqueId()).getLevel() + " &8(&e" + xpLeft + " &7XP left to level up&8) &8[&a" + multiplier + "x&8]");
+        Prison.texter.response(p0, " &f⤷ Next level: &7❰ &r" + progress + " &7❱  &a" + percent + "%");
     }
 
     /*@Command("test")

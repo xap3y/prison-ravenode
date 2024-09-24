@@ -21,25 +21,27 @@ public class ConfigDb {
     public static Location loc2;
 
 
+    // This is a fucking mess, instead it should be getting those values from the config.yml
+    // Also, level requirement should be bounded on the cell, not blocks D: TODO: FIX THIS MESS
     public static final HashMap<Material, Block> BLOCK_MAPPER = new HashMap<>() {{
-        put(Material.STONE, new Block(50, 10, 10));       // 50%
-        put(Material.COBBLESTONE, new Block(50, 20, 20)); // 50%
+        put(Material.STONE, new Block(0, 10, 10));       // 50%
+        put(Material.COBBLESTONE, new Block(0, 20, 20)); // 50%
 
-        put(Material.BRICKS, new Block(50, 20, 20));       // 50%
-        put(Material.MUD_BRICKS, new Block(50, 20, 20));   // 50%
+        put(Material.BRICKS, new Block(6, 20, 20));       // 50%
+        put(Material.MUD_BRICKS, new Block(6, 20, 20));   // 50%
 
-        put(Material.DIORITE, new Block(50, 30, 30));       // 50%
-        put(Material.POLISHED_DIORITE, new Block(50, 30, 30));   // 50%
+        put(Material.DIORITE, new Block(11, 30, 30));       // 50%
+        put(Material.POLISHED_DIORITE, new Block(11, 30, 30));   // 50%
 
-        put(Material.ANDESITE, new Block(50, 40, 40));       // 50%
-        put(Material.POLISHED_ANDESITE, new Block(50, 40, 40));   // 50%
+        put(Material.ANDESITE, new Block(21, 40, 40));       // 50%
+        put(Material.POLISHED_ANDESITE, new Block(21, 40, 40));   // 50%
 
-        put(Material.SAND, new Block(50, 50, 50));       // 50%
-        put(Material.SANDSTONE, new Block(50, 50, 50));   // 50%
+        put(Material.SAND, new Block(31, 50, 50));       // 50%
+        put(Material.SANDSTONE, new Block(31, 50, 50));   // 50%
 
-        put(Material.TERRACOTTA, new Block(50, 60, 60));       // 50%
-        put(Material.PACKED_MUD, new Block(50, 60, 60));   // 50%
+        put(Material.TERRACOTTA, new Block(41, 60, 60));       // 50%
+        put(Material.PACKED_MUD, new Block(41, 60, 60));   // 50%
 
-        put(Material.GOLD_BLOCK, new Block(50, 200, 0));
+        put(Material.GOLD_BLOCK, new Block(0, 2000, 0));//DEBUG
     }};
 }

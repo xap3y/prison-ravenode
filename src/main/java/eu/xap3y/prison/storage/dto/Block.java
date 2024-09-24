@@ -4,12 +4,12 @@ import lombok.Data;
 
 public @Data class Block {
 
-    private final int percentage;
+    private final int level;
     private final int xp;
     private final int coins;
 
-    public Block(int percentage, int xp, int coins) {
-        this.percentage = percentage;
+    public Block(int level, int xp, int coins) {
+        this.level = level;
         this.xp = xp;
         this.coins = coins;
     }

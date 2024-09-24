@@ -1,14 +1,11 @@
 package eu.xap3y.prison.services;
 
-import com.destroystokyo.paper.Title;
 import eu.xap3y.prison.Prison;
+import eu.xap3y.prison.api.typealias.PlayerCache;
 import eu.xap3y.prison.storage.ConfigDb;
 import eu.xap3y.prison.storage.PlayerStorage;
 import eu.xap3y.xalib.managers.Texter;
-import eu.xap3y.xalib.objects.ProgressbarModifier;
 import eu.xap3y.xalib.objects.TextModifier;
-import net.kyori.adventure.text.Component;
-import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -18,7 +15,7 @@ import java.util.UUID;
 
 public class LevelService {
 
-    // Level, XP | money multipler
+    // Level, XP | money multiplier
     public static final HashMap<Integer, Double> levelMapper = new HashMap<>() {{
         put(1, 1.1);
         put(5, 1.2);
@@ -35,23 +32,27 @@ public class LevelService {
         put(90, 2.3);
     }};
 
-    public static HashMap<UUID, Double> playerCacheXp = new HashMap<>();
+    // XP | multiplier
+    public static PlayerCache playerCache = new PlayerCache();
 
     public static final double STARTING_XP = 100.0;
+
+    private static double getClosesMultiplier(int level) {
+        int closestLevel = 1;
+        for (int i : levelMapper.keySet()) {
+            if (i <= level) {
+                closestLevel = i;
+            }
+        }
+        return levelMapper.get(closestLevel);
+    }
 
     public static double requiredXp(int level) {
         if (level < 1) {
             return STARTING_XP;
         }
 
-        double closestLevel = 1;
-        for (Integer definedLevel : levelMapper.keySet()) {
-            if (definedLevel <= level-1) {
-                closestLevel = levelMapper.get(definedLevel);
-            } else {
-                break;
-            }
-        }
+        double closestLevel = getClosesMultiplier(level-1);
 
         return STARTING_XP + ((50 * level) * closestLevel);
     }
@@ -60,10 +61,11 @@ public class LevelService {
         double xp = PlayerStorage.economy.get(id).getXp();
         int level = PlayerStorage.economy.get(id).getLevel()+1;
 
-        double requiredXp = playerCacheXp.getOrDefault(id, STARTING_XP);
+        double requiredXp = playerCache.getRequiredXp(id);
         // Check if player has enough xp to level up
         if (xp >= requiredXp) {
-            playerCacheXp.replace(id, requiredXp(level));
+            playerCache.setMultiplier(id, getMultiplier(level));
+            playerCache.setRequiredXp(id, requiredXp(level));
             PlayerStorage.economy.get(id).setLevel(level);
             PlayerStorage.economy.get(id).setXp(xp - requiredXp);
 
@@ -77,7 +79,7 @@ public class LevelService {
     }
 
     public static String shortProgress(UUID p0, int maxLength, Character col) {
-        int repeater = (int) ((PlayerStorage.economy.get(p0).getXp() / playerCacheXp.getOrDefault(p0, 100.0)) * maxLength);
+        int repeater = (int) ((PlayerStorage.economy.get(p0).getXp() / playerCache.get(p0).getLeft()) * maxLength);
         if (repeater < 0) repeater = 0;
         if (repeater > maxLength) repeater = maxLength;
         String fillText = "■".repeat(repeater);
@@ -89,6 +91,7 @@ public class LevelService {
         return shortProgress(p0, 10);
     }
 
+    @SuppressWarnings("deprecation")
     public static void levelUp(UUID id) {
         Player p0 = Bukkit.getPlayer(id);
         assert p0 != null;
@@ -115,5 +118,14 @@ public class LevelService {
             p0.setExp(0.0f);
             Bukkit.getScheduler().cancelTask(temp);
         }, 40L);
+    }
+
+    public static double getMultiplier(UUID id) {
+        int level = PlayerStorage.economy.get(id).getLevel();
+        return getClosesMultiplier(level);
+    }
+
+    public static double getMultiplier(int level) {
+        return getClosesMultiplier(level);
     }
 }

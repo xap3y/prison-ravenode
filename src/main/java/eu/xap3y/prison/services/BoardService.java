@@ -12,6 +12,8 @@ import java.util.UUID;
 
 public class BoardService {
 
+    // TODO: Make board configurable in config.yml
+
     private static final Map<UUID, FastBoard> boards = new HashMap<>();
 
     public static FastBoard getBoard(UUID uuid) {
@@ -60,12 +62,14 @@ public class BoardService {
             text = "    §f❰ §eʟᴇᴠᴇʟ ᴜᴘ §f❱";
         }
 
+        // FONT URL = https://lingojam.com/CoolTextFonts (the 13th one)
         board.updateLines(
                 Component.empty(),
                 Component.text("§b§l✦  §e§lᴘʟᴀʏᴇʀ ɪɴꜰᴏ  §b§l✦"),
                 Component.text("§3♦ §fʟᴇᴠᴇʟ: §6" + PlayerStorage.economy.get(p0).getLevel()),
                 Component.text("§3♢ §fxᴘ: §9" + PlayerStorage.economy.get(p0).getXp()),
                 Component.text("§3♦ §fᴘᴜʀꜱᴇ: §a" + (int) PlayerStorage.economy.get(p0).getCoins() + "$"),
+                Component.text("§3♢ §fᴘʀᴇꜱᴛɪɢᴇꜱ: §c" + PlayerStorage.economy.get(p0).getPrestiges()),
                 Component.empty(),
                 Component.text("§3₪ §e§lʟᴇᴠᴇʟ ᴘʀᴏɢʀᴇꜱꜱ"),
                 Component.text(text),
