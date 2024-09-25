@@ -1,12 +1,18 @@
 package eu.xap3y.prison.listeners;
 
 import eu.xap3y.prison.Prison;
+import eu.xap3y.prison.api.interfaces.EnchantInterface;
+import eu.xap3y.prison.manager.CooldownManager;
+import eu.xap3y.prison.manager.EnchantManager;
 import eu.xap3y.prison.services.BoardService;
+import eu.xap3y.prison.services.BreakService;
+import eu.xap3y.prison.services.CellService;
 import eu.xap3y.prison.services.LevelService;
 import eu.xap3y.prison.storage.ConfigDb;
 import eu.xap3y.prison.storage.PlayerStorage;
 import eu.xap3y.prison.storage.StorageManager;
 import eu.xap3y.prison.storage.dto.Block;
+import eu.xap3y.prison.storage.dto.Cell;
 import eu.xap3y.prison.util.Utils;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -18,6 +24,8 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Objects;
 
@@ -37,17 +45,34 @@ public class BlockBreakListener implements Listener {
             return;
         }
 
-        if (event.getPlayer().getGameMode() != GameMode.SURVIVAL) {
-            return;
-        }
-
         Material mat = event.getBlock().getType();
 
-        Block block = StorageManager.getBlock(mat);
+        Cell cell = CellService.cellMapper.get(StorageManager.getType(mat));
 
+        if (cell == null)
+            return;
+
+        Block block = StorageManager.getBlock(cell, mat);
 
         if (block == null)
             return;
+
+        boolean isInsideCell = cell.isInside(event.getBlock().getLocation());
+        if (!isInsideCell) return;
+
+        if (event.getPlayer().getGameMode() != GameMode.SURVIVAL && !event.getPlayer().isSneaking()) {
+            event.setCancelled(true);
+            Prison.texter.response(event.getPlayer(), "&cIf you want to break blocks in creative mode, please sneak!");
+            return;
+        } else if (event.getPlayer().getGameMode() != GameMode.SURVIVAL && event.getPlayer().isSneaking()) {
+            event.setCancelled(false);
+            return;
+        }
+
+        // Repair player's tool
+        ItemMeta meta = event.getPlayer().getInventory().getItemInMainHand().getItemMeta();
+        meta.setUnbreakable(true);
+        event.getPlayer().getInventory().getItemInMainHand().setItemMeta(meta);
 
         if (PlayerStorage.economy.get(event.getPlayer().getUniqueId()).getLevel() < block.getLevel()) {
             event.setCancelled(true);
@@ -57,20 +82,22 @@ public class BlockBreakListener implements Listener {
             return;
         }
 
-        event.getPlayer().getInventory().addItem(new ItemStack(Utils.remapDrop(event.getBlock().getType()), 1));
+        String enchantName = event.getPlayer().getInventory().getItemInMainHand().getItemMeta().getPersistentDataContainer().get(ConfigDb.PRISON_ENCH_KEY, PersistentDataType.STRING);
+        if (enchantName != null) {
+            EnchantInterface enchant = EnchantManager.getEnchant(enchantName);
+            if (enchant != null) {
+                if (CooldownManager.hasCooldown(event.getPlayer(), enchant.getCooldown())) {
+                    event.setCancelled(true);
+                    return;
+                }
+                enchant.start(event.getBlock().getLocation(), event.getPlayer(), block);
+            }
+        }
 
         event.setDropItems(false);
 
-        // Give rewards
-        final double multiplier = LevelService.playerCache.getMultiplier(event.getPlayer().getUniqueId());
-        final double xp = block.getXp() * multiplier;
-        final double coins = block.getCoins() * multiplier;
 
-        Utils.displayAction(event.getPlayer(), "§a+ " + xp + " XP  &r|  §6+ " + coins + " $", 60);
-        PlayerStorage.add(event.getPlayer().getUniqueId(), xp, coins);
-
-
-        event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+        BreakService.process(block, event.getPlayer());
         BoardService.updateBoard(event.getPlayer().getUniqueId());
         LevelService.checkLevel(event.getPlayer().getUniqueId());
     }

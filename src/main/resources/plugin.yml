@@ -6,4 +6,4 @@ authors: [ XAP3Y ]
 description: Prison minigame
 website: https://ravenode.nl
 
-#softdepend: [PlaceholderAPI]
+softdepend: [PlaceholderAPI]

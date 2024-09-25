@@ -4,6 +4,7 @@ import eu.xap3y.prison.Prison;
 import eu.xap3y.prison.api.typealias.PlayerCache;
 import eu.xap3y.prison.storage.ConfigDb;
 import eu.xap3y.prison.storage.PlayerStorage;
+import eu.xap3y.prison.util.Utils;
 import eu.xap3y.xalib.managers.Texter;
 import eu.xap3y.xalib.objects.TextModifier;
 import org.bukkit.Bukkit;
@@ -17,7 +18,7 @@ public class LevelService {
 
     // Level, XP | money multiplier
     public static final HashMap<Integer, Double> levelMapper = new HashMap<>() {{
-        put(1, 1.1);
+        put(1, 1.0);
         put(5, 1.2);
         put(10, 1.3);
         put(15, 1.4);
@@ -35,7 +36,7 @@ public class LevelService {
     // XP | multiplier
     public static PlayerCache playerCache = new PlayerCache();
 
-    public static final double STARTING_XP = 100.0;
+    public static final double STARTING_XP = 80.0;
 
     private static double getClosesMultiplier(int level) {
         int closestLevel = 1;
@@ -54,7 +55,7 @@ public class LevelService {
 
         double closestLevel = getClosesMultiplier(level-1);
 
-        return STARTING_XP + ((50 * level) * closestLevel);
+        return STARTING_XP + ((40 * level) * closestLevel);
     }
 
     public static void checkLevel(UUID id) {
@@ -127,5 +128,13 @@ public class LevelService {
 
     public static double getMultiplier(int level) {
         return getClosesMultiplier(level);
+    }
+
+    public static void fixExp(UUID p0) {
+        double exp = PlayerStorage.economy.get(p0).getXp();
+
+        // Fix 77.65000000000006 to 77.65
+        exp = Utils.fixDecimals(exp);
+        PlayerStorage.economy.get(p0).setXp(exp);
     }
 }

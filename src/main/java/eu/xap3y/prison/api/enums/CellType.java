@@ -7,5 +7,11 @@ public enum CellType {
     MANGO,
     FIBER,
     GRASS,
-    FLOWER
+    FLOWER;
+
+    public final int prio;
+
+    CellType() {
+        this.prio = ordinal();
+    }
 }

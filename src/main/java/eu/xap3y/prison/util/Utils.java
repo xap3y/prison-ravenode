@@ -73,6 +73,16 @@ public class Utils {
         cooldowns.put(p.getUniqueId(), taskId);
     }
 
+    public static double fixDecimals(double val) {
+        String[] split = String.valueOf(val).split("\\.");
+        if (split.length > 1) {
+            if (split[1].length() > 2) {
+                return Double.parseDouble(split[0] + "." + split[1].substring(0, 2));
+            }
+        }
+        return val;
+    }
+
     public static Material remapDrop(Material mat) {
         return remap.getOrDefault(mat, mat);
     }

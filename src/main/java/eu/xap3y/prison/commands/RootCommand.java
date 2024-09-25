@@ -3,11 +3,13 @@ package eu.xap3y.prison.commands;
 import eu.xap3y.prison.Prison;
 import eu.xap3y.prison.api.enums.CellType;
 import eu.xap3y.prison.api.gui.CellGui;
+import eu.xap3y.prison.api.gui.PrestigeGui;
 import eu.xap3y.prison.services.CellService;
 import eu.xap3y.prison.services.LevelService;
 import eu.xap3y.prison.storage.ConfigDb;
 import eu.xap3y.prison.storage.PlayerStorage;
 import eu.xap3y.prison.storage.dto.Cell;
+import eu.xap3y.prison.util.Utils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.annotations.Argument;
@@ -168,7 +170,7 @@ public class RootCommand {
             return;
         }
 
-        double xpLeft = LevelService.playerCache.get(player.getUniqueId()).getLeft() - PlayerStorage.economy.get(player.getUniqueId()).getXp();
+        double xpLeft = Utils.fixDecimals(LevelService.playerCache.get(player.getUniqueId()).getLeft() - PlayerStorage.economy.get(player.getUniqueId()).getXp());
 
         String progress = LevelService.shortProgress(player.getUniqueId(), 20, '&');
 
@@ -177,6 +179,47 @@ public class RootCommand {
         Prison.texter.response(p0, "&fYour level: &e" + PlayerStorage.economy.get(player.getUniqueId()).getLevel() + " &8(&e" + xpLeft + " &7XP left to level up&8) &8[&a" + multiplier + "x&8]");
         Prison.texter.response(p0, " &f⤷ Next level: &7❰ &r" + progress + " &7❱  &a" + percent + "%");
     }
+
+    @Command("prison empty [cell]")
+    public void getLevel(
+            CommandSender p0,
+            @Argument("cell") CellType cellType
+    ) {
+        if (!(p0 instanceof Player player)) {
+            Prison.texter.response(p0, ConfigDb.ONLY_PLAYER);
+            return;
+        }
+
+        Cell cell = CellService.cellMapper.get(cellType);
+        Prison.texter.response(p0, "IS CLEAR: " + cell.isEmpty());
+    }
+
+    @Command("prison prestige")
+    public void prestige(
+            CommandSender p0
+    ) {
+        if (!(p0 instanceof Player player)) {
+            Prison.texter.response(p0, ConfigDb.ONLY_PLAYER);
+            return;
+        }
+
+        //Cell cell = CellService.cellMapper.get(cellType);
+        PrestigeGui.openGui(player);
+    }
+
+    @Command("prison giveTest")
+    public void giveTest(
+            CommandSender p0
+    ) {
+        if (!(p0 instanceof Player player)) {
+            Prison.texter.response(p0, ConfigDb.ONLY_PLAYER);
+            return;
+        }
+
+        //Cell cell = CellService.cellMapper.get(cellType);
+        player.getInventory().addItem(ConfigDb.getAdvancedPickaxe());
+    }
+
 
     /*@Command("test")
     @CommandDescription("Test Prison command")

@@ -21,7 +21,7 @@ public class PlayerStorage {
 
     private static void addPlayer(UUID uuid) {
         economy.put(uuid, new PlayerDto(0, 0, 0, 0));
-        Prison.texter.console("&aPlayer &e" + uuid + " &ahas been added to the economy.");
+        //Prison.texter.console("&aPlayer &e" + uuid + " &ahas been added to the economy.");
         savePlayers();
     }
 

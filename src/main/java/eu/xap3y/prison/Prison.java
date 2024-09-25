@@ -2,18 +2,23 @@ package eu.xap3y.prison;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import eu.xap3y.prison.api.enchants.TestEnchant;
+import eu.xap3y.prison.api.gui.StaticItems;
 import eu.xap3y.prison.commands.RootCommand;
 import eu.xap3y.prison.listeners.BlockBreakListener;
+import eu.xap3y.prison.listeners.PlaceholderApiExpansion;
 import eu.xap3y.prison.listeners.PlayerListener;
 import eu.xap3y.prison.manager.CommandManager;
 import eu.xap3y.prison.manager.ConfigManager;
+import eu.xap3y.prison.manager.EnchantManager;
 import eu.xap3y.prison.services.CellService;
 import eu.xap3y.prison.storage.PlayerStorage;
 import eu.xap3y.prison.storage.StorageManager;
+import eu.xap3y.prison.util.LogLogger;
 import eu.xap3y.xagui.XaGui;
 import eu.xap3y.xalib.managers.Texter;
-import eu.xap3y.xalib.objects.ProgressbarModifier;
 import eu.xap3y.xalib.objects.TexterObj;
+import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -30,6 +35,8 @@ public final class Prison extends JavaPlugin {
 
     public static final String ver = "@VERSION@";
     public static final String main = "@MAIN@";
+
+    public static final boolean DEBUG = false;
 
     @Override
     public void onEnable() {
@@ -62,7 +69,6 @@ public final class Prison extends JavaPlugin {
 
         gson = new GsonBuilder().setPrettyPrinting().create();
 
-        StorageManager.saveBlocks();
         StorageManager.loadBlocks();
 
         /*for (Map.Entry<Material, Block> entry : StorageManager.getBlocks().entrySet()) {
@@ -73,13 +79,21 @@ public final class Prison extends JavaPlugin {
 
         registerListeners(getServer().getPluginManager());
 
-        String test = Texter.progressBar(new ProgressbarModifier(80, '|', '|', "&a||", "&f||"));
-        texter.console("80% = " + test);
-
-        String test2 = Texter.progressBar(new ProgressbarModifier(20, '|', '|', "&a||", "&f||"));
-        texter.console("20% = " + test2);
+        StaticItems.init();
 
         CellService.loadCellsLocs();
+
+        if (DEBUG) {
+            org.apache.logging.log4j.Logger rootLogger = org.apache.logging.log4j.LogManager.getRootLogger();
+            org.apache.logging.log4j.core.Logger logger = (org.apache.logging.log4j.core.Logger) rootLogger;
+            logger.addFilter(new LogLogger());
+        }
+
+        registerPapi();
+
+        CellService.registerCellsTasks();
+
+        EnchantManager.registerEnchant("test", new TestEnchant());
     }
 
     private static void registerListeners(PluginManager manager) {
@@ -94,19 +108,13 @@ public final class Prison extends JavaPlugin {
         }
     }
 
-    /*private void registerPapi() {
+    private void registerPapi() {
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            *//*
-             * We register the EventListener here, when PlaceholderAPI is installed.
-             * Since all events are in the main class (this class), we simply use "this"
-             *//*
-            //Bukkit.getPluginManager().registerEvents(new MyListener(), this);
+            texter.console("&aPlaceholderAPI found! Registering expansion...");
+            new PlaceholderApiExpansion().register();
         } else {
-            *//*
-             * We inform about the fact that PlaceholderAPI isn't installed and then
-             * disable this plugin to prevent issues.
-             *//*
+
             //Bukkit.getPluginManager().disablePlugin(this);
         }
-    }*/
+    }
 }
