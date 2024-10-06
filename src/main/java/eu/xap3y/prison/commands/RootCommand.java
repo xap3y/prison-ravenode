@@ -4,6 +4,8 @@ import eu.xap3y.prison.Prison;
 import eu.xap3y.prison.api.enums.CellType;
 import eu.xap3y.prison.api.gui.CellGui;
 import eu.xap3y.prison.api.gui.PrestigeGui;
+import eu.xap3y.prison.api.interfaces.Debug;
+import eu.xap3y.prison.services.BoardService;
 import eu.xap3y.prison.services.CellService;
 import eu.xap3y.prison.services.LevelService;
 import eu.xap3y.prison.storage.ConfigDb;
@@ -44,8 +46,9 @@ public class RootCommand {
     public void setLobby(
             CommandSender p0
     ) {
-        if (p0 instanceof Player) {
-            Prison.INSTANCE.getConfig().set("lobby", ((Player) p0).getLocation());
+        if (p0 instanceof Player player) {
+            Prison.INSTANCE.getConfig().set("lobby", player.getLocation());
+            ConfigDb.spawn = ((Player) p0).getLocation();
             Prison.INSTANCE.saveConfig();
             Prison.texter.response(p0, "Lobby set!");
         } else {
@@ -64,8 +67,7 @@ public class RootCommand {
             Prison.texter.response(p0, ConfigDb.ONLY_PLAYER);
             return;
         }
-
-        if (cell == null) {
+        else if (cell == null) {
             Prison.texter.response(p0, "&cInvalid mine type &7(&c/prison setspawn <cell>&7)");
             return;
         }
@@ -103,13 +105,23 @@ public class RootCommand {
             return;
         }
 
-        if (cell == null) {
+        else if (cell == null) {
             Prison.texter.response(p0, "&cInvalid mine type &7(&c/prison createMine <cell>&7)");
             return;
         }
 
-        if (ConfigDb.loc1 == null || ConfigDb.loc2 == null) {
+        else if (ConfigDb.loc1 == null || ConfigDb.loc2 == null) {
             Prison.texter.response(p0, "&cPlease set the area with the wand first");
+            return;
+        }
+
+        else if (!CellService.cellMapper.containsKey(cell)) {
+            Prison.texter.response(p0, "&cUnknown mine type!");
+            return;
+        }
+
+        else if (CellService.cellMapper.get(cell).getSpawn() == null) {
+            Prison.texter.response(p0, "&cPlease set the spawn first");
             return;
         }
 
@@ -133,8 +145,7 @@ public class RootCommand {
             Prison.texter.response(p0, ConfigDb.ONLY_PLAYER);
             return;
         }
-
-        if (cell == null) {
+        else if (cell == null) {
             Prison.texter.response(p0, "&cInvalid mine type &7(&c/prison reset <cell>&7)");
             return;
         }
@@ -144,6 +155,7 @@ public class RootCommand {
     }
 
     // This should not be used at all
+    @Debug
     @Command("prison resetAll")
     @CommandDescription("Reset all cells")
     @Permission(value = {"prison.reset", "prison.*"}, mode = Permission.Mode.ANY_OF)
@@ -180,13 +192,19 @@ public class RootCommand {
         Prison.texter.response(p0, " &f⤷ Next level: &7❰ &r" + progress + " &7❱  &a" + percent + "%");
     }
 
+    @Debug
     @Command("prison empty [cell]")
+    @Permission(value = {"prison.debug", "prison.*"}, mode = Permission.Mode.ANY_OF)
     public void getLevel(
             CommandSender p0,
             @Argument("cell") CellType cellType
     ) {
-        if (!(p0 instanceof Player player)) {
+        if (!(p0 instanceof Player)) {
             Prison.texter.response(p0, ConfigDb.ONLY_PLAYER);
+            return;
+        }
+        else if (cellType == null) {
+            Prison.texter.response(p0, "&cInvalid mine type &7(&c/prison empty <cell>&7)");
             return;
         }
 
@@ -207,17 +225,53 @@ public class RootCommand {
         PrestigeGui.openGui(player);
     }
 
-    @Command("prison giveTest")
-    public void giveTest(
+    @Command("prison reload")
+    @CommandDescription("Reload the plugins configuration")
+    @Permission(value = {"prison.reload", "prison.*"}, mode = Permission.Mode.ANY_OF)
+    public void reloadConfig(
             CommandSender p0
+    ) {
+        Prison.INSTANCE.reloadConfig();
+        Prison.INSTANCE.reload();
+        BoardService.loadConfig();
+        BoardService.reloadAllBoards();
+        Prison.texter.response(p0, "&fConfiguration reloaded");
+    }
+
+    @Debug
+    @Command("prison giveTest [name]")
+    public void giveTest(
+            CommandSender p0,
+            @Argument("name") String name
+    ) {
+        if (!(p0 instanceof Player player)) {
+            Prison.texter.response(p0, ConfigDb.ONLY_PLAYER);
+            return;
+        }
+        else if (name == null) {
+            Prison.texter.response(p0, "&cInvalid enchant name &7(&c/prison giveTest <name>&7)");
+            return;
+        }
+
+        //Cell cell = CellService.cellMapper.get(cellType);
+        player.getInventory().addItem(ConfigDb.getAdvancedPickaxe(name));
+    }
+
+    @Debug
+    @Command("prison cheatLvl <level>")
+    public void cheatLvl(
+            CommandSender p0,
+            @Argument("level") int level
     ) {
         if (!(p0 instanceof Player player)) {
             Prison.texter.response(p0, ConfigDb.ONLY_PLAYER);
             return;
         }
 
-        //Cell cell = CellService.cellMapper.get(cellType);
-        player.getInventory().addItem(ConfigDb.getAdvancedPickaxe());
+        PlayerStorage.economy.get(player.getUniqueId()).setLevel(level);
+        PlayerStorage.savePlayers();
+        BoardService.updateBoard(player.getUniqueId(), true);
+        Prison.texter.response(p0, "Level set to " + level);
     }
 
 

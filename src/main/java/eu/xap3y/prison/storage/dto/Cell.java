@@ -3,6 +3,7 @@ package eu.xap3y.prison.storage.dto;
 import eu.xap3y.prison.Prison;
 import eu.xap3y.prison.api.enums.CellType;
 import eu.xap3y.prison.services.CellService;
+import eu.xap3y.prison.storage.ConfigDb;
 import lombok.Data;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -33,11 +34,10 @@ public @Data class Cell {
 
     public LocalDateTime lastReset;
     public final long RESET_DELAY = 20L; // 1 second
-    private final long CHECK_DELAY = 60 * 5;
-    public final long BUFFER = 900; // 120   (RESET_DELAY * 900) = RESET [900s]
+    private final long CHECK_DELAY = 60 * 5; // 5 minutes
     public int resetTaskId;
 
-    public int secondsLeft = (int) BUFFER;
+    public int secondsLeft;
 
 
     public Cell(CellType type, String name, Location spawn, String head, int minLevel, Blocks blocks, Location pos1, Location pos2, Block[] blockArr) {
@@ -50,6 +50,7 @@ public @Data class Cell {
         this.pos1 = pos1;
         this.pos2 = pos2;
         this.blockArray = blockArr;
+        this.secondsLeft = ConfigDb.resetDelay;
 
         lastReset = LocalDateTime.now();
     }
@@ -79,19 +80,19 @@ public @Data class Cell {
         AtomicInteger current2 = new AtomicInteger();
 
         this.resetTaskId = Bukkit.getScheduler().runTaskTimerAsynchronously(Prison.INSTANCE, () -> {
-            if ( current2.get() >= CHECK_DELAY) {
+            if (current2.get() >= CHECK_DELAY) {
                 current2.set(0);
                 if (this.isEmpty()) {
                     CellService.resetCell(this.type);
-                    secondsLeft = (int) BUFFER;
+                    secondsLeft = ConfigDb.resetDelay;
                     return;
                 }
             }
             current2.getAndIncrement();
-            if (current.get() >= BUFFER) {
+            if (current.get() >= ConfigDb.resetDelay) {
                 current.set(0);
                 CellService.resetCell(this.type);
-                secondsLeft = (int) BUFFER;
+                secondsLeft = ConfigDb.resetDelay;
             } else {
                 secondsLeft--;
                 current.getAndIncrement();

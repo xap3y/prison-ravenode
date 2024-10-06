@@ -4,6 +4,7 @@ import eu.xap3y.prison.Prison;
 import eu.xap3y.prison.api.interfaces.EnchantInterface;
 import eu.xap3y.prison.manager.CooldownManager;
 import eu.xap3y.prison.services.BreakService;
+import eu.xap3y.prison.storage.dto.Cell;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -14,11 +15,11 @@ public class TestEnchant implements EnchantInterface {
 
     @Override
     public long getCooldown() {
-        return 2000L;
+        return 20L;
     }
 
     @Override
-    public void start(Location loc, Player p0, eu.xap3y.prison.storage.dto.Block lastBlock) {
+    public void start(Location loc, Player p0, eu.xap3y.prison.storage.dto.Block lastBlock, Cell cell) {
 
         CooldownManager.setCooldown(p0);
 
@@ -29,10 +30,8 @@ public class TestEnchant implements EnchantInterface {
                     for (int z = loc.getBlockZ() - 1; z <= loc.getBlockZ() + 1; z++) {
                         Block temp = loc.getWorld().getBlockAt(x, y, z);
                         if (temp.getType() == lastBlock.getMat()) {
-                            Bukkit.getScheduler().runTask(Prison.INSTANCE, () -> {
-                                BreakService.process(lastBlock, p0);
-                                temp.setType(Material.AIR);
-                            });
+                            BreakService.process(lastBlock, p0, false);
+                            Bukkit.getScheduler().runTask(Prison.INSTANCE, () -> temp.setType(Material.AIR));
                         }
                         try {
                             Thread.sleep(40);

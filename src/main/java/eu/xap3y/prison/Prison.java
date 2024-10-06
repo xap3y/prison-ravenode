@@ -1,17 +1,20 @@
 package eu.xap3y.prison;
 
+import com.github.fierioziy.particlenativeapi.api.ParticleNativeAPI;
+import com.github.fierioziy.particlenativeapi.core.ParticleNativeCore;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import eu.xap3y.prison.api.enchants.ExplosiveEnchant;
 import eu.xap3y.prison.api.enchants.TestEnchant;
 import eu.xap3y.prison.api.gui.StaticItems;
 import eu.xap3y.prison.commands.RootCommand;
-import eu.xap3y.prison.listeners.BlockBreakListener;
-import eu.xap3y.prison.listeners.PlaceholderApiExpansion;
-import eu.xap3y.prison.listeners.PlayerListener;
+import eu.xap3y.prison.listeners.*;
 import eu.xap3y.prison.manager.CommandManager;
 import eu.xap3y.prison.manager.ConfigManager;
 import eu.xap3y.prison.manager.EnchantManager;
+import eu.xap3y.prison.services.BoardService;
 import eu.xap3y.prison.services.CellService;
+import eu.xap3y.prison.storage.ConfigDb;
 import eu.xap3y.prison.storage.PlayerStorage;
 import eu.xap3y.prison.storage.StorageManager;
 import eu.xap3y.prison.util.LogLogger;
@@ -19,6 +22,7 @@ import eu.xap3y.xagui.XaGui;
 import eu.xap3y.xalib.managers.Texter;
 import eu.xap3y.xalib.objects.TexterObj;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -38,11 +42,12 @@ public final class Prison extends JavaPlugin {
 
     public static final boolean DEBUG = false;
 
+    public static ParticleNativeAPI parApi;
+
     @Override
     public void onEnable() {
         INSTANCE = this;
-
-
+        parApi = ParticleNativeCore.loadAPI(this);
         //  Initializing XaGUI  \\
         xagui = new XaGui(this);
 
@@ -52,6 +57,9 @@ public final class Prison extends JavaPlugin {
 
         //  Saving if not exists & Reloading config file  \\
         ConfigManager.reloadConfig();
+
+        // Load scoreboard configuration
+        BoardService.loadConfig();
 
         //  Setting up texter  \\
         String prefix = getConfig().getString("prefix");
@@ -91,9 +99,26 @@ public final class Prison extends JavaPlugin {
 
         registerPapi();
 
-        CellService.registerCellsTasks();
-
         EnchantManager.registerEnchant("test", new TestEnchant());
+        EnchantManager.registerEnchant("tnt", new ExplosiveEnchant());
+
+        reload();
+
+        // Note for dev: Call reload() before CellService#registerCellsTasks
+        CellService.registerCellsTasks();
+    }
+
+    public void reload() {
+        // Load lobby
+        Location spawn = getConfig().getLocation("lobby");
+        if (spawn != null) {
+            ConfigDb.spawn = spawn;
+        }
+
+        // Load lobby on join
+        PlayerListener.lobbyOnJoin = getConfig().getBoolean("teleport-join", false);
+
+        ConfigDb.resetDelay = getConfig().getInt("mines.reset-delay", 6000);
     }
 
     private static void registerListeners(PluginManager manager) {
@@ -101,6 +126,8 @@ public final class Prison extends JavaPlugin {
         Listener[] listeners = new Listener[]{
                 new BlockBreakListener(),
                 new PlayerListener(),
+                new EntityDamageListener(),
+                new ExplosionListener()
         };
 
         for (Listener listener : listeners) {
@@ -113,7 +140,7 @@ public final class Prison extends JavaPlugin {
             texter.console("&aPlaceholderAPI found! Registering expansion...");
             new PlaceholderApiExpansion().register();
         } else {
-
+            texter.console("&cPlaceholderAPI not found! Ignoring expansion...");
             //Bukkit.getPluginManager().disablePlugin(this);
         }
     }

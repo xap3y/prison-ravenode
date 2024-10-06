@@ -36,7 +36,7 @@ public class LevelService {
     // XP | multiplier
     public static PlayerCache playerCache = new PlayerCache();
 
-    public static final double STARTING_XP = 80.0;
+    public static final double STARTING_XP = 80d;
 
     private static double getClosesMultiplier(int level) {
         int closestLevel = 1;

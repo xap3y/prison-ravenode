@@ -1,6 +1,30 @@
 
 prefix: "&7[&bPrison&7] &r"
 
+mines:
+    # Reset delay in ticks:
+    # 20 ticks = 1 second
+    # 100 ticks = 5 seconds
+    # 1200 ticks = 1 minute
+    # 6000 ticks = 5 minutes (6000/20/60 = 5)
+    reset-delay: 6000
+
+# Teleport player to the lobby position on join?
+teleport-join: true
+
+scoreboard:
+    title: "§e۞     §6§lPRISON    §e۞"
+    lines:
+        - "§3♦ §fʟᴇᴠᴇʟ: §6%level%"
+        - "§3♢ §fxᴘ: §9%xp%"
+        - "§3♦ §fᴘᴜʀꜱᴇ: §a%purse%$"
+        - "§3♢ §fᴘʀᴇꜱᴛɪɢᴇꜱ: §c%prestiges%"
+        - ""
+        - "§3₪ §e§lʟᴇᴠᴇʟ ᴘʀᴏɢʀᴇꜱꜱ"
+        - "  §3§l➥ §7❰ %bar% §7❱"
+        - ""
+        - "    §eplay.ravenode.nl"
+
 lobby:
     world: "world"
     x: 0

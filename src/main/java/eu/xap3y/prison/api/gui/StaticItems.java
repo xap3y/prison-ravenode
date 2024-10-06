@@ -24,4 +24,14 @@ public class StaticItems {
         return new GuiButton(Material.ENDER_EYE)
                 .setName("&9&lPrestige");
     }
+
+    public static ItemStack getConfirmPane() {
+        return new GuiButton(Material.LIME_STAINED_GLASS_PANE).setName("&a&lConfirm").getItem();
+    }
+
+    public static GuiButton getRejectPane() {
+        return new GuiButton(Material.RED_STAINED_GLASS_PANE).setName("&c&lReject").withListener((inventoryClickEvent) -> {
+            inventoryClickEvent.getWhoClicked().closeInventory();
+        });
+    }
 }

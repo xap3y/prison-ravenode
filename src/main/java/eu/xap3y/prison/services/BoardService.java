@@ -3,15 +3,14 @@ package eu.xap3y.prison.services;
 import eu.xap3y.prison.Prison;
 import eu.xap3y.prison.api.enums.CellType;
 import eu.xap3y.prison.storage.PlayerStorage;
+import eu.xap3y.prison.storage.dto.BoardConfig;
 import eu.xap3y.prison.storage.dto.Cell;
 import eu.xap3y.prison.util.Utils;
 import fr.mrmicky.fastboard.adventure.FastBoard;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 
 public class BoardService {
@@ -20,14 +19,32 @@ public class BoardService {
 
     private static final Map<UUID, FastBoard> boards = new HashMap<>();
 
+    private static BoardConfig boardConfig;
+
     public static FastBoard getBoard(UUID uuid) {
         return boards.get(uuid);
+    }
+
+    public static void loadConfig() {
+        BoardConfig boardConfig = new BoardConfig();
+        boardConfig.setTitle(Prison.INSTANCE.getConfig().getString("scoreboard.title", "§b§l✦  §e§lPrison  §b§l✦"));
+        boardConfig.setLines(Prison.INSTANCE.getConfig().getStringList("scoreboard.lines"));
+        BoardService.boardConfig = boardConfig;
+    }
+
+    public static void reloadAllBoards() {
+        boards.forEach((uuid, board) -> {
+            FastBoard newBoard = new FastBoard(board.getPlayer());
+            newBoard.updateTitle(Component.text(boardConfig.title));
+            boards.replace(uuid, newBoard);
+            modifyBoard(uuid, newBoard);
+        });
     }
 
     public static void addBoard(Player p0) {
         FastBoard board = new FastBoard(p0);
 
-        board.updateTitle(Component.text("§e۞     §6§lPRISON    §e۞"));
+        board.updateTitle(Component.text(boardConfig.title));
 
         boards.put(p0.getUniqueId(), board);
         modifyBoard(p0.getUniqueId(), board);
@@ -89,27 +106,26 @@ public class BoardService {
         String text;
 
         if (!lvlUp) {
-            text = "  §3§l➥ §7❰ " + levelProgressBar + " §7❱";
+            text = levelProgressBar;
         } else {
-            text = "    §f❰ §eʟᴇᴠᴇʟ ᴜᴘ §f❱";
+            text = "§eʟᴇᴠᴇʟ ᴜᴘ";
         }
 
-        // FONT URL = https://lingojam.com/CoolTextFonts (the 13th one)
-        board.updateLines(
-                Component.empty(),
-                Component.text("§b§l✦  §e§lᴘʟᴀʏᴇʀ ɪɴꜰᴏ  §b§l✦"),
-                Component.text("§3♦ §fʟᴇᴠᴇʟ: §6" + PlayerStorage.economy.get(p0).getLevel()),
-                Component.text("§3♢ §fxᴘ: §9" + Utils.fixDecimals(PlayerStorage.economy.get(p0).getXp())),
-                Component.text("§3♦ §fᴘᴜʀꜱᴇ: §a" + (int) PlayerStorage.economy.get(p0).getCoins() + "$"),
-                Component.text("§3♢ §fᴘʀᴇꜱᴛɪɢᴇꜱ: §c" + PlayerStorage.economy.get(p0).getPrestiges()),
-                Component.empty(),
-                Component.text("§3₪ §e§lʟᴇᴠᴇʟ ᴘʀᴏɢʀᴇꜱꜱ"),
-                Component.text(text),
-                /*Component.empty(),
-                Component.text("§f§lᴍɪɴᴇ"),
-                Component.text("§aStarter Mine"),*/
-                Component.empty(),
-                Component.text("    §eplay.ravenode.nl")
-        );
+        List<Component> lines = new ArrayList<>();
+
+        int level = PlayerStorage.economy.get(p0).getLevel();
+        double xp = Utils.fixDecimals(PlayerStorage.economy.get(p0).getXp());
+        int purse = (int) PlayerStorage.economy.get(p0).getCoins();
+        int prestiges = PlayerStorage.economy.get(p0).getPrestiges();
+
+        boardConfig.getLines().forEach((line -> {
+            lines.add(Component.text(line.replaceAll("%level%", String.valueOf(level))
+                    .replaceAll("%xp%", String.valueOf(xp))
+                    .replaceAll("%purse%", String.valueOf(purse))
+                    .replaceAll("%prestiges%", String.valueOf(prestiges))
+                    .replaceAll("%bar%", text)));
+        }));
+
+        board.updateLines(lines);
     }
 }

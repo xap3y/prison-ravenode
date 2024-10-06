@@ -1,9 +1,9 @@
 package eu.xap3y.prison.api.gui;
 
 import eu.xap3y.prison.Prison;
-import eu.xap3y.prison.services.LevelService;
 import eu.xap3y.prison.services.PrestigeService;
 import eu.xap3y.prison.storage.PlayerStorage;
+import eu.xap3y.skullcreator.SkullCreator;
 import eu.xap3y.xagui.GuiMenu;
 import eu.xap3y.xagui.models.GuiButton;
 import org.bukkit.Material;
@@ -41,7 +41,7 @@ public class PrestigeGui {
         }
 
         // TODO: Better lore
-        gui.setSlot(22, new GuiButton(Material.LADDER).setName("&9&lPrestige")
+        gui.setSlot(22, new GuiButton(SkullCreator.itemFromBase64("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzc3ZDRhMjA2ZDc3NTdmNDc5ZjMzMmVjMWEyYmJiZWU1N2NlZjk3NTY4ZGQ4OGRmODFmNDg2NGFlZTdkM2Q5OCJ9fX0=")).setName("&9&lPrestige")
                 .setLore(text)
                 .withListener(inventoryClickEvent -> {
                     if (!req) {
@@ -49,9 +49,13 @@ public class PrestigeGui {
                         return;
                     }
 
-                    p0.closeInventory();
-
-                    PrestigeService.prestige(p0);
+                    ConfirmGui.openGui(p0, "&9&lPrestige", StaticItems.getPrestigeMainItem().getItem(),
+                            new GuiButton(StaticItems.getConfirmPane())
+                                    .withListener(event -> {
+                                        event.getWhoClicked().closeInventory();
+                                        PrestigeService.prestige(p0);
+                                    })
+                    );
                 })
         );
 

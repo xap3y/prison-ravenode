@@ -10,14 +10,13 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.UUID;
 
 public class ConfigDb {
 
@@ -29,6 +28,13 @@ public class ConfigDb {
 
     public static Location loc1;
     public static Location loc2;
+
+    public static Location spawn; // A.K.A lobby
+
+    public static int resetDelay = 6000;
+
+    @Nullable
+    public static Player lastPlayer = null;
 
     @SuppressWarnings("deprecation")
     public static ItemStack getDefaultPickaxe() {
@@ -51,11 +57,11 @@ public class ConfigDb {
     }
 
     // TEST
-    public static ItemStack getAdvancedPickaxe() {
+    public static ItemStack getAdvancedPickaxe(String name) {
         ItemStack item = getDefaultPickaxe();
         ItemMeta meta = item.getItemMeta();
         meta.addEnchant(Enchantment.DIG_SPEED, 5, true);
-        meta.getPersistentDataContainer().set(PRISON_ENCH_KEY, PersistentDataType.STRING, "test");
+        meta.getPersistentDataContainer().set(PRISON_ENCH_KEY, PersistentDataType.STRING, name);
         item.setItemMeta(meta);
 
         return item;

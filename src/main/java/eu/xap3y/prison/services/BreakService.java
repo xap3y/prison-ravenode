@@ -5,13 +5,11 @@ import eu.xap3y.prison.storage.dto.Block;
 import eu.xap3y.prison.util.Utils;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 
 public class BreakService {
 
-    public static void process(Block block, Player p0) {
-
+    public static void process(Block block, Player p0, boolean sound) {
         final double multiplier = LevelService.playerCache.getMultiplier(p0.getUniqueId());
 
         final double xp = Utils.fixDecimals(block.getXp() * multiplier);
@@ -22,7 +20,11 @@ public class BreakService {
         PlayerStorage.add(p0.getUniqueId(), xp, coins);
         LevelService.fixExp(p0.getUniqueId());
 
-        p0.getInventory().addItem(new ItemStack(Utils.remapDrop(block.getMat()), 1));
-        p0.playSound(p0, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5f, 0.8f);
+        //p0.getInventory().addItem(new ItemStack(Utils.remapDrop(block.getMat()), 1));
+        if (sound) p0.playSound(p0, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5f, 0.8f);
+    }
+
+    public static void process(Block block, Player p0) {
+        process(block, p0, true);
     }
 }

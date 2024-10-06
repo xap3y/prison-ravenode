@@ -69,11 +69,6 @@ public class BlockBreakListener implements Listener {
             return;
         }
 
-        // Repair player's tool
-        ItemMeta meta = event.getPlayer().getInventory().getItemInMainHand().getItemMeta();
-        meta.setUnbreakable(true);
-        event.getPlayer().getInventory().getItemInMainHand().setItemMeta(meta);
-
         if (PlayerStorage.economy.get(event.getPlayer().getUniqueId()).getLevel() < block.getLevel()) {
             event.setCancelled(true);
             Utils.displayAction(event.getPlayer(), "§cYou need to be at least level " + block.getLevel() + " to mine this block!", 20);
@@ -90,7 +85,7 @@ public class BlockBreakListener implements Listener {
                     event.setCancelled(true);
                     return;
                 }
-                enchant.start(event.getBlock().getLocation(), event.getPlayer(), block);
+                enchant.start(event.getBlock().getLocation(), event.getPlayer(), block, cell);
             }
         }
 

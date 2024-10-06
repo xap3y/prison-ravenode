@@ -45,7 +45,7 @@ public class CellService {
                 null,
                 null,
                 new Block[]{
-                        new Block(6, 40.5, 30, 2, Material.COPPER_BLOCK),
+                        new Block(6, 40.5, 30, 2, Material.TERRACOTTA),
                         new Block(6, 10, 20, 50, Material.BRICKS),
                         new Block(6, 8.8, 16, 100, Material.MUD_BRICKS)
                 }
@@ -155,6 +155,7 @@ public class CellService {
 
             Bukkit.getScheduler().runTaskLaterAsynchronously(Prison.INSTANCE, cell::registerResetBukkitTask, delay);
             delay += 20 * 10;
+            //break;
         }
     }
 

@@ -48,7 +48,7 @@ dependencies {
     implementation 'com.github.xap3y:skullcreator:ccdc446'
     implementation 'fr.mrmicky:fastboard:2.1.3'
     //implementation 'com.github.cryptomorin:XSeries:11.2.0.1'
-    //implementation 'com.github.fierioziy.particlenativeapi:ParticleNativeAPI-core:4.3.0'
+    implementation 'com.github.fierioziy.particlenativeapi:ParticleNativeAPI-core:4.3.0'
     //implementation 'org.bstats:bstats-bukkit:3.0.3'
 
     // No need to shadow these:
@@ -103,9 +103,10 @@ tasks {
         relocate 'eu.xap3y.xalib', "${group}.${baseCoordinates.toLowerCase()}.util.xalib"
         relocate 'eu.xap3y.skullcreator', "${group}.${baseCoordinates.toLowerCase()}.util.skull"
         relocate 'fr.mrmicky.fastboard', "${group}.${baseCoordinates.toLowerCase()}.util.fastboard"
+        relocate 'com.github.fierioziy.particlenativeapi', "${group}.${baseCoordinates.toLowerCase()}.util.particlenativeapi"
 
         //relocate 'org.bstats', "${group}.${baseCoordinates.toLowerCase()}.util.bstats"
-        /*relocate 'com.github.fierioziy.particlenativeapi', "${group}.${baseCoordinates.toLowerCase()}.util.particlenativeapi"
+        /*
         relocate 'com.cryptomorin.xseries', "${group}.${baseCoordinates.toLowerCase()}.util.xseries"
         relocate 'net.wesjd.anvilgui', "${group}.${baseCoordinates.toLowerCase()}.util.anvilgui"*/
     }
