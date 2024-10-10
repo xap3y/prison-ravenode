@@ -2,7 +2,9 @@ package eu.xap3y.prison.commands;
 
 import eu.xap3y.prison.Prison;
 import eu.xap3y.prison.api.enums.CellType;
+import eu.xap3y.prison.api.enums.EnchantType;
 import eu.xap3y.prison.api.gui.CellGui;
+import eu.xap3y.prison.api.gui.MainGui;
 import eu.xap3y.prison.api.gui.PrestigeGui;
 import eu.xap3y.prison.api.interfaces.Debug;
 import eu.xap3y.prison.services.BoardService;
@@ -12,12 +14,17 @@ import eu.xap3y.prison.storage.ConfigDb;
 import eu.xap3y.prison.storage.PlayerStorage;
 import eu.xap3y.prison.storage.dto.Cell;
 import eu.xap3y.prison.util.Utils;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.incendo.cloud.annotations.Argument;
-import org.incendo.cloud.annotations.Command;
-import org.incendo.cloud.annotations.CommandDescription;
-import org.incendo.cloud.annotations.Permission;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.incendo.cloud.annotations.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RootCommand {
 
@@ -27,6 +34,7 @@ public class RootCommand {
         Prison.texter.response(p0, "Prison plugin for ravenode v" + Prison.ver + "  main: " + Prison.main);
     }
 
+    @ProxiedBy("menu")
     @Command("prison menu")
     @CommandDescription("Open the prison menu")
     public void openMenu(
@@ -37,7 +45,7 @@ public class RootCommand {
             return;
         }
 
-        CellGui.openGui(player);
+        MainGui.openGui(player);
     }
 
     @Command("prison setlobby")
@@ -172,6 +180,7 @@ public class RootCommand {
         Prison.texter.response(p0, "&fAll mines has been reset");
     }
 
+    @ProxiedBy("level")
     @Command("prison level")
     @CommandDescription("Get your level")
     public void getLevel(
@@ -212,6 +221,7 @@ public class RootCommand {
         Prison.texter.response(p0, "IS CLEAR: " + cell.isEmpty());
     }
 
+    @ProxiedBy("prestige")
     @Command("prison prestige")
     public void prestige(
             CommandSender p0
@@ -239,22 +249,30 @@ public class RootCommand {
     }
 
     @Debug
-    @Command("prison giveTest [name]")
+    @Command("prison giveTest [type]")
     public void giveTest(
             CommandSender p0,
-            @Argument("name") String name
+            @Argument("type") EnchantType type
     ) {
         if (!(p0 instanceof Player player)) {
             Prison.texter.response(p0, ConfigDb.ONLY_PLAYER);
             return;
         }
-        else if (name == null) {
-            Prison.texter.response(p0, "&cInvalid enchant name &7(&c/prison giveTest <name>&7)");
+        else if (type == null) {
+            Prison.texter.response(p0, "&cInvalid enchant name &7(&c/prison giveTest <type>&7)");
             return;
         }
 
         //Cell cell = CellService.cellMapper.get(cellType);
-        player.getInventory().addItem(ConfigDb.getAdvancedPickaxe(name));
+        ItemStack modifiedItem = ConfigDb.getAdvancedPickaxe(type);
+        ItemMeta meta = modifiedItem.getItemMeta();
+        List<Component> listOfLore = new ArrayList<>() {{
+            add(Component.empty());
+            add(Component.text("§7Enchant: §b" + type.name().toUpperCase()));
+        }};
+        meta.lore(listOfLore);
+        modifiedItem.setItemMeta(meta);
+        player.getInventory().addItem(modifiedItem);
     }
 
     @Debug
@@ -272,6 +290,32 @@ public class RootCommand {
         PlayerStorage.savePlayers();
         BoardService.updateBoard(player.getUniqueId(), true);
         Prison.texter.response(p0, "Level set to " + level);
+    }
+
+    @Debug
+    @Command("gmc")
+    public void gamemodeC(
+            CommandSender p0
+    ) {
+        if (!(p0 instanceof Player player)) {
+            Prison.texter.response(p0, ConfigDb.ONLY_PLAYER);
+            return;
+        }
+
+        Bukkit.getScheduler().runTask(Prison.INSTANCE, () -> player.setGameMode(GameMode.CREATIVE));
+    }
+
+    @Debug
+    @Command("gms")
+    public void gamemodeS(
+            CommandSender p0
+    ) {
+        if (!(p0 instanceof Player player)) {
+            Prison.texter.response(p0, ConfigDb.ONLY_PLAYER);
+            return;
+        }
+
+        Bukkit.getScheduler().runTask(Prison.INSTANCE, () -> player.setGameMode(GameMode.SURVIVAL));
     }
 
 

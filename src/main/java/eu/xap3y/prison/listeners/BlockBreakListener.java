@@ -1,6 +1,7 @@
 package eu.xap3y.prison.listeners;
 
 import eu.xap3y.prison.Prison;
+import eu.xap3y.prison.api.enums.EnchantType;
 import eu.xap3y.prison.api.interfaces.EnchantInterface;
 import eu.xap3y.prison.manager.CooldownManager;
 import eu.xap3y.prison.manager.EnchantManager;
@@ -77,20 +78,34 @@ public class BlockBreakListener implements Listener {
             return;
         }
 
-        String enchantName = event.getPlayer().getInventory().getItemInMainHand().getItemMeta().getPersistentDataContainer().get(ConfigDb.PRISON_ENCH_KEY, PersistentDataType.STRING);
-        if (enchantName != null) {
-            EnchantInterface enchant = EnchantManager.getEnchant(enchantName);
-            if (enchant != null) {
-                if (CooldownManager.hasCooldown(event.getPlayer(), enchant.getCooldown())) {
-                    event.setCancelled(true);
-                    return;
+        boolean callback = false;
+        EnchantType[] enchants = event.getPlayer().getInventory().getItemInMainHand().getItemMeta().getPersistentDataContainer().get(ConfigDb.PRISON_ENCH_KEY, ConfigDb.enchantTypeArrayDataType);
+        if (enchants != null) {
+            for (EnchantType type : enchants) {
+                EnchantInterface enchant = EnchantManager.getEnchant(type);
+                if (enchant != null) {
+                    //Prison.texter.response(event.getPlayer(), "FOUND ENCHANT: " + enchant.getName());
+                    /*if (CooldownManager.hasCooldown(event.getPlayer(), enchant.getCooldown())) {
+                        event.setCancelled(true);
+                        return;
+                    }*/
+                    boolean succeed = enchant.start(event.getBlock().getLocation(), event.getPlayer(), block, cell);
+                    if (succeed && enchant.useCallback()) {
+                        callback = true;
+                    }
                 }
-                enchant.start(event.getBlock().getLocation(), event.getPlayer(), block, cell);
             }
         }
 
+        Integer level =  event.getPlayer().getInventory().getItemInMainHand().getItemMeta().getPersistentDataContainer().get(ConfigDb.PRISON_TOOL_LEVEL_KEY, PersistentDataType.INTEGER);
+        if (level != null) {
+            //Prison.texter.response(event.getPlayer(), "THIS TOOL IS LVL: " + level);
+        }
         event.setDropItems(false);
 
+        if (callback){
+            return;
+        }
 
         BreakService.process(block, event.getPlayer());
         BoardService.updateBoard(event.getPlayer().getUniqueId());

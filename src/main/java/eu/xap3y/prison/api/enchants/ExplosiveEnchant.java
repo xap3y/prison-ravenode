@@ -1,6 +1,7 @@
 package eu.xap3y.prison.api.enchants;
 
 import eu.xap3y.prison.Prison;
+import eu.xap3y.prison.api.enums.EnchantType;
 import eu.xap3y.prison.api.interfaces.EnchantInterface;
 import eu.xap3y.prison.manager.CooldownManager;
 import eu.xap3y.prison.services.BoardService;
@@ -8,15 +9,16 @@ import eu.xap3y.prison.services.BreakService;
 import eu.xap3y.prison.storage.StorageManager;
 import eu.xap3y.prison.storage.dto.Block;
 import eu.xap3y.prison.storage.dto.Cell;
+import eu.xap3y.prison.util.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.*;
+import org.jetbrains.annotations.NotNull;
 
 
 public class ExplosiveEnchant implements EnchantInterface {
-
 
     // 90 degrees rotated "octahedron" shape of blocks to break
     private static final int[][] blockOffsets = {
@@ -38,7 +40,12 @@ public class ExplosiveEnchant implements EnchantInterface {
     }
 
     @Override
-    public void start(Location loc, Player p0, Block lastBlock, Cell cell) {
+    public @NotNull EnchantType getType() {
+        return EnchantType.TNT;
+    }
+
+    @Override
+    public boolean start(Location loc, Player p0, Block lastBlock, Cell cell) {
 
         CooldownManager.setCooldown(p0);
 
@@ -52,7 +59,19 @@ public class ExplosiveEnchant implements EnchantInterface {
 
             for (double i = min; i <= max; i += transform) {
                 //yModifier -= (Y_MODIFIER_DEF / (max - transform * max)) * (max + transform); // Too much decrease
-                summonCircle(loc, i, p0);
+                Utils.summonCircle(loc, i, 20).forEach((locTemp) -> {
+                    Prison.parApi.LIST_1_13.ASH
+                            .packet(true, locTemp)
+                            .sendTo(p0);
+
+                    Prison.parApi.LIST_1_13.DUST_PLUME
+                            .packet(true, locTemp)
+                            .sendTo(p0);
+
+                    Prison.parApi.LIST_1_8.REDSTONE
+                            .packet(true, locTemp)
+                            .sendTo(p0);
+                });
 
                 try {
                     Thread.sleep(20);
@@ -90,41 +109,11 @@ public class ExplosiveEnchant implements EnchantInterface {
                 p0.playSound(p0, Sound.BLOCK_DECORATED_POT_INSERT_FAIL, 1f, 1f);
             }
         });
-
+        return true;
     }
 
     @Override
     public String getName() {
-        return "";
-    }
-
-
-    private void summonCircle(Location location, double size, Player p0) {
-        for (int d = 0; d <= 20; d += 1) {
-            Location particleLoc = new Location(location.getWorld(), location.getX(), location.getY(), location.getZ());
-            particleLoc.setX((location.getX() + Math.cos(d) * size)+0.5);
-            particleLoc.setY(location.getY()+1.0);
-            particleLoc.setZ((location.getZ() + Math.sin(d) * size)+0.5);
-
-            if (Prison.DEBUG) {
-                Bukkit.getOnlinePlayers().forEach(player -> {
-                    Prison.texter.response(player, "CIR-X: &c" + particleLoc.getBlockX());
-                    Prison.texter.response(player, "CIR-Y: &c" + particleLoc.getBlockY());
-                    Prison.texter.response(player, "CIR-Z: &c" + particleLoc.getBlockZ());
-                });
-            }
-
-            Prison.parApi.LIST_1_13.ASH
-                    .packet(true, particleLoc)
-                    .sendTo(p0);
-
-            Prison.parApi.LIST_1_13.DUST_PLUME
-                    .packet(true, particleLoc)
-                    .sendTo(p0);
-
-            Prison.parApi.LIST_1_8.REDSTONE
-                    .packet(true, particleLoc)
-                    .sendTo(p0);
-        }
+        return "&c&lEXPLOSIVE";
     }
 }

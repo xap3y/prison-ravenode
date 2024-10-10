@@ -18,9 +18,10 @@ public class PlayerStorage {
     public static final HashMap<UUID, PlayerDto> economy = new HashMap<>();
 
     private static final File file = new File(Prison.INSTANCE.getDataFolder(), "players.json");
+    private static final File statsFile = new File(Prison.INSTANCE.getDataFolder(), "stats.json");
 
     private static void addPlayer(UUID uuid) {
-        economy.put(uuid, new PlayerDto(0, 0, 0, 0));
+        economy.put(uuid, new PlayerDto(0, 0, 0, 0, 0));
         //Prison.texter.console("&aPlayer &e" + uuid + " &ahas been added to the economy.");
         savePlayers();
     }
@@ -105,9 +106,14 @@ public class PlayerStorage {
     }
 
     public static void add(UUID p, double xp, double money) {
+        add(p, xp, money, 0);
+    }
+
+    public static void add(UUID p, double xp, double money, int blocks) {
         PlayerDto playerDto = economy.get(p);
         playerDto.setXp(playerDto.getXp() + xp);
         playerDto.setCoins(playerDto.getCoins() + money);
+        playerDto.setBlocksMined(playerDto.getBlocksMined() + blocks);
         economy.put(p, playerDto);
 
         // TODO -- schedule save task

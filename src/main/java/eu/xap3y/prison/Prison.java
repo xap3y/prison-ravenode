@@ -4,8 +4,11 @@ import com.github.fierioziy.particlenativeapi.api.ParticleNativeAPI;
 import com.github.fierioziy.particlenativeapi.core.ParticleNativeCore;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import eu.xap3y.prison.api.enchants.Demonistic;
+import eu.xap3y.prison.api.enchants.EnhancerEnchant;
 import eu.xap3y.prison.api.enchants.ExplosiveEnchant;
 import eu.xap3y.prison.api.enchants.TestEnchant;
+import eu.xap3y.prison.api.enums.EnchantType;
 import eu.xap3y.prison.api.gui.StaticItems;
 import eu.xap3y.prison.commands.RootCommand;
 import eu.xap3y.prison.listeners.*;
@@ -18,11 +21,15 @@ import eu.xap3y.prison.storage.ConfigDb;
 import eu.xap3y.prison.storage.PlayerStorage;
 import eu.xap3y.prison.storage.StorageManager;
 import eu.xap3y.prison.util.LogLogger;
+import eu.xap3y.skullcreator.SkullCreator;
 import eu.xap3y.xagui.XaGui;
+import eu.xap3y.xagui.models.GuiButton;
 import eu.xap3y.xalib.managers.Texter;
 import eu.xap3y.xalib.objects.TexterObj;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -50,6 +57,12 @@ public final class Prison extends JavaPlugin {
         parApi = ParticleNativeCore.loadAPI(this);
         //  Initializing XaGUI  \\
         xagui = new XaGui(this);
+
+        xagui.setCloseButton(new GuiButton(SkullCreator.itemFromBase64(ConfigDb.BARRIER)).setName("&cClose").withListener((e) -> {
+            Player p = (Player) e.getWhoClicked();
+            p.closeInventory();
+            p.playSound(p, Sound.BLOCK_ENDER_CHEST_CLOSE, .2f, 1f);
+        }));
 
         //  Creating parser & Parsing command classes below  \\
         CommandManager cmdManager = new CommandManager();
@@ -99,8 +112,10 @@ public final class Prison extends JavaPlugin {
 
         registerPapi();
 
-        EnchantManager.registerEnchant("test", new TestEnchant());
-        EnchantManager.registerEnchant("tnt", new ExplosiveEnchant());
+        EnchantManager.registerEnchant(EnchantType.TEST, new TestEnchant());
+        EnchantManager.registerEnchant(EnchantType.TNT, new ExplosiveEnchant());
+        EnchantManager.registerEnchant(EnchantType.ENHANCER, new EnhancerEnchant());
+        EnchantManager.registerEnchant(EnchantType.DEMON, new Demonistic());
 
         reload();
 

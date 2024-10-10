@@ -1,14 +1,20 @@
 package eu.xap3y.prison.util;
 
 import eu.xap3y.prison.Prison;
+import eu.xap3y.prison.api.enums.LeaderBoardType;
+import eu.xap3y.prison.storage.PlayerStorage;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class Utils {
 
@@ -83,7 +89,49 @@ public class Utils {
         return val;
     }
 
+    public static LinkedHashMap<UUID, Integer> getLeaderboard(LeaderBoardType type) {
+
+        return switch (type) {
+            case COINS -> {
+                yield PlayerStorage.economy.entrySet().stream()
+                        .sorted((e1, e2) -> Double.compare(e2.getValue().getCoins(), e1.getValue().getCoins()))
+                        .collect(LinkedHashMap::new, (m, e) -> m.put(e.getKey(), (int) e.getValue().getCoins()), Map::putAll);
+            }
+            case LEVEL -> {
+                yield PlayerStorage.economy.entrySet().stream()
+                        .sorted((e1, e2) -> Integer.compare(e2.getValue().getLevel(), e1.getValue().getLevel()))
+                        .collect(LinkedHashMap::new, (m, e) -> m.put(e.getKey(), e.getValue().getLevel()), Map::putAll);
+            }
+            case PRESTIGES -> {
+                yield PlayerStorage.economy.entrySet().stream()
+                        .sorted((e1, e2) -> Integer.compare(e2.getValue().getPrestiges(), e1.getValue().getPrestiges()))
+                        .collect(LinkedHashMap::new, (m, e) -> m.put(e.getKey(), e.getValue().getPrestiges()), Map::putAll);
+            }
+            case BLOCKS_MINED -> {
+                yield PlayerStorage.economy.entrySet().stream()
+                        .sorted((e1, e2) -> Integer.compare(e2.getValue().getBlocksMined(), e1.getValue().getBlocksMined()))
+                        .collect(LinkedHashMap::new, (m, e) -> m.put(e.getKey(), e.getValue().getBlocksMined()), Map::putAll);
+            }
+        };
+    }
+
+
+    public static LeaderBoardType getNextLeaderBoardType(LeaderBoardType type) {
+        return type.ordinal() + 1 < LeaderBoardType.values().length ? LeaderBoardType.values()[type.ordinal() + 1] : LeaderBoardType.values()[0];
+    }
+
     public static Material remapDrop(Material mat) {
         return remap.getOrDefault(mat, mat);
+    }
+
+    public static Stream<Location> summonCircle(Location location, double size, int points) {
+
+        return IntStream.rangeClosed(0, points).mapToObj(d -> {
+            Location particleLoc = new Location(location.getWorld(), location.getX(), location.getY(), location.getZ());
+            particleLoc.setX((location.getX() + Math.cos(d) * size) + 0.5);
+            particleLoc.setY(location.getY() + 1.0);
+            particleLoc.setZ((location.getZ() + Math.sin(d) * size) + 0.5);
+            return particleLoc;
+        });
     }
 }

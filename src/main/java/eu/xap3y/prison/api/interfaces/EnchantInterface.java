@@ -1,5 +1,6 @@
 package eu.xap3y.prison.api.interfaces;
 
+import eu.xap3y.prison.api.enums.EnchantType;
 import eu.xap3y.prison.storage.dto.Block;
 import eu.xap3y.prison.storage.dto.Cell;
 import org.bukkit.Location;
@@ -10,12 +11,20 @@ public interface EnchantInterface {
 
     //void start(Location loc, Player p0, Block lastBlock);
 
-    void start(Location loc, Player p0, Block lastBlock, Cell cell);
+    @NotNull
+    EnchantType getType();
+
+    boolean start(Location loc, Player p0, Block lastBlock, Cell cell);
+
 
     String getName();
 
     // IN TICKS
     default long getCooldown() {
         return 20L; // 1 second
+    }
+
+    default boolean useCallback() {
+        return false;
     }
 }

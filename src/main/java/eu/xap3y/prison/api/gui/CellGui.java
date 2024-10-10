@@ -7,7 +7,6 @@ import eu.xap3y.xagui.models.GuiButton;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CellGui {
@@ -18,6 +17,8 @@ public class CellGui {
         gui.fillBorder();
 
         gui.addCloseButton();
+
+        gui.setSlot(36, StaticItems.getBackButton());
 
         AtomicInteger slot = new AtomicInteger(10);
         CellService.cellMapper.values().forEach(cell -> {

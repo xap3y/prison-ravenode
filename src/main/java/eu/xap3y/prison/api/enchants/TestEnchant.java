@@ -1,6 +1,7 @@
 package eu.xap3y.prison.api.enchants;
 
 import eu.xap3y.prison.Prison;
+import eu.xap3y.prison.api.enums.EnchantType;
 import eu.xap3y.prison.api.interfaces.EnchantInterface;
 import eu.xap3y.prison.manager.CooldownManager;
 import eu.xap3y.prison.services.BreakService;
@@ -10,6 +11,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 public class TestEnchant implements EnchantInterface {
 
@@ -19,7 +21,12 @@ public class TestEnchant implements EnchantInterface {
     }
 
     @Override
-    public void start(Location loc, Player p0, eu.xap3y.prison.storage.dto.Block lastBlock, Cell cell) {
+    public @NotNull EnchantType getType() {
+        return EnchantType.TEST;
+    }
+
+    @Override
+    public boolean start(Location loc, Player p0, eu.xap3y.prison.storage.dto.Block lastBlock, Cell cell) {
 
         CooldownManager.setCooldown(p0);
 
@@ -42,10 +49,12 @@ public class TestEnchant implements EnchantInterface {
                 }
             }
         });
+
+        return true;
     }
 
     @Override
     public String getName() {
-        return "TestEnchant";
+        return "&a&lTEST";
     }
 }

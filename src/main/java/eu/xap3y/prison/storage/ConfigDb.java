@@ -1,21 +1,25 @@
 package eu.xap3y.prison.storage;
 
 import eu.xap3y.prison.Prison;
-import eu.xap3y.prison.api.interfaces.EnchantInterface;
-import eu.xap3y.prison.storage.dto.Block;
+import eu.xap3y.prison.api.enums.EnchantType;
+import eu.xap3y.prison.api.enums.UpgradeSolution;
+import eu.xap3y.prison.api.interfaces.Debug;
+import eu.xap3y.prison.api.persistents.ToolEnchantType;
+import eu.xap3y.prison.storage.dto.ToolAttributes;
+import eu.xap3y.prison.storage.dto.UpgradeRes;
 import eu.xap3y.xagui.models.GuiButton;
-import eu.xap3y.xalib.managers.Texter;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.HashMap;
+
+import static javax.swing.UIManager.put;
 
 
 public class ConfigDb {
@@ -33,41 +37,57 @@ public class ConfigDb {
 
     public static int resetDelay = 6000;
 
+    public static ToolEnchantType enchantTypeArrayDataType = new ToolEnchantType();
+
+    public static final String TOOL_NAME_PATTERN = "&f&l%s  &7&l(&b&l%s&7&l)";
+    public static final String[] levelNameMapper = {
+            "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"
+    };
+
     @Nullable
     public static Player lastPlayer = null;
 
     @SuppressWarnings("deprecation")
-    public static ItemStack getDefaultPickaxe() {
-        ItemStack item = new ItemStack(Material.IRON_PICKAXE);
-        ItemMeta meta = item.getItemMeta();
-
-        meta.setDisplayName(Texter.colored("&f&lIron Pickaxe &8&l[&7&lI&8&l]"));
-        meta.addItemFlags(
-                ItemFlag.HIDE_ENCHANTS,
-                ItemFlag.HIDE_ATTRIBUTES,
-                ItemFlag.HIDE_ITEM_SPECIFICS,
-                ItemFlag.HIDE_UNBREAKABLE,
-                ItemFlag.HIDE_DESTROYS
-        );
-        meta.setUnbreakable(true);
-
-        item.setItemMeta(meta);
-
-        return item;
+    public static ItemStack getDefaultPickaxe(int level) {
+        return toolMapper.get(level).getTool();
     }
 
-    // TEST
-    public static ItemStack getAdvancedPickaxe(String name) {
-        ItemStack item = getDefaultPickaxe();
+    @Debug
+    public static ItemStack getAdvancedPickaxe(EnchantType type) {
+        ItemStack item = getDefaultPickaxe(0);
         ItemMeta meta = item.getItemMeta();
-        meta.addEnchant(Enchantment.DIG_SPEED, 5, true);
-        meta.getPersistentDataContainer().set(PRISON_ENCH_KEY, PersistentDataType.STRING, name);
+        //meta.addEnchant(Enchantment.DIG_SPEED, 5, true);
+        if (type != EnchantType.ALL)
+            meta.getPersistentDataContainer().set(PRISON_ENCH_KEY, enchantTypeArrayDataType, new EnchantType[]{type});
+        else
+            meta.getPersistentDataContainer().set(PRISON_ENCH_KEY, enchantTypeArrayDataType, new EnchantType[]{EnchantType.TNT, EnchantType.TEST});
+        meta.getPersistentDataContainer().set(PRISON_TOOL_LEVEL_KEY, PersistentDataType.INTEGER, 1);
         item.setItemMeta(meta);
 
         return item;
     }
 
     public static final NamespacedKey PRISON_ENCH_KEY = new NamespacedKey(Prison.INSTANCE, "prison_ench");
+    public static final NamespacedKey PRISON_TOOL_LEVEL_KEY = new NamespacedKey(Prison.INSTANCE, "tool_level");
+
+    public static final HashMap<Integer, ToolAttributes> toolMapper = new HashMap<>() {{
+       put(0, new ToolAttributes("Iron Pickaxe", Material.IRON_PICKAXE, 0));
+       put(1, new ToolAttributes("Iron Pickaxe", Material.IRON_PICKAXE, 1));
+       put(2, new ToolAttributes("Iron Pickaxe", Material.IRON_PICKAXE, 2));
+    }};
+
+    private static final GuiButton DEFAULT_UPGRADE = new GuiButton(Material.ANVIL);
+    private static final GuiButton DEFAULT_UPGRADE_ERROR = new GuiButton(Material.BARRIER).setName("&c&lError");
+
+    public static final HashMap<UpgradeSolution, UpgradeRes> upgradeResMapper = new HashMap<>() {{
+        put(UpgradeSolution.ALLOWED, new UpgradeRes(DEFAULT_UPGRADE.clone().setName("&a&lUpgrade"), true));
+        put(UpgradeSolution.WRONG_ITEM, new UpgradeRes(DEFAULT_UPGRADE_ERROR.clone().setLore(" ", "&fWrong tool!"), false));
+        put(UpgradeSolution.INVALID_ITEM, new UpgradeRes(DEFAULT_UPGRADE_ERROR.clone().setLore(" ", "&fInvalid tool!"), false));
+        put(UpgradeSolution.NO_ITEM, new UpgradeRes(DEFAULT_UPGRADE.clone().setName("&a&lUpgrade").setLore(" ", "&fInsert item"), false));
+        put(UpgradeSolution.MAX_LEVEL, new UpgradeRes(DEFAULT_UPGRADE_ERROR.clone().setLore(" ", "&fThis tool is already at its max level!"), false));
+        put(UpgradeSolution.UNKNOWN, new UpgradeRes(DEFAULT_UPGRADE_ERROR.clone().setLore(" ", "&fCannot upgrade this tool!"), false));
+
+    }};
     // This is a fucking mess, instead it should be getting those values from the config.yml
     // EDIT: WHY THIS EVEN EXIST, this should be part of the Cell class
     // Also, level requirement should be bounded on the cell, not blocks D: TODO: FIX THIS MESS
@@ -93,4 +113,11 @@ public class ConfigDb {
 
         put(Material.GOLD_BLOCK, new Block(0, 2000, 0, 50, Material.GOLD_BLOCK));//DEBUG
     }};*/
+
+    // HEADS BASE64
+
+    public static final String BARRIER = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvM2VkMWFiYTczZjYzOWY0YmM0MmJkNDgxOTZjNzE1MTk3YmUyNzEyYzNiOTYyYzk3ZWJmOWU5ZWQ4ZWZhMDI1In19fQ==";
+    public static final String BACK = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmQ2OWUwNmU1ZGFkZmQ4NGU1ZjNkMWMyMTA2M2YyNTUzYjJmYTk0NWVlMWQ0ZDcxNTJmZGM1NDI1YmMxMmE5In19fQ==";
+    public static final String CRATES = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2UyZWI0NzUxZTNjNTBkNTBmZjE2MzUyNTc2NjYzZDhmZWRmZTNlMDRiMmYwYjhhMmFhODAzYjQxOTM2M2NhMSJ9fX0=";
+    public static final String PRESTIGE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzc3ZDRhMjA2ZDc3NTdmNDc5ZjMzMmVjMWEyYmJiZWU1N2NlZjk3NTY4ZGQ4OGRmODFmNDg2NGFlZTdkM2Q5OCJ9fX0=";
 }
