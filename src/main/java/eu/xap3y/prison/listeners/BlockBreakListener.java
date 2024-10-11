@@ -85,10 +85,9 @@ public class BlockBreakListener implements Listener {
                 EnchantInterface enchant = EnchantManager.getEnchant(type);
                 if (enchant != null) {
                     //Prison.texter.response(event.getPlayer(), "FOUND ENCHANT: " + enchant.getName());
-                    /*if (CooldownManager.hasCooldown(event.getPlayer(), enchant.getCooldown())) {
-                        event.setCancelled(true);
-                        return;
-                    }*/
+                    if (CooldownManager.hasCooldown(event.getPlayer(), enchant.getCooldown())) {
+                        break;
+                    }
                     boolean succeed = enchant.start(event.getBlock().getLocation(), event.getPlayer(), block, cell);
                     if (succeed && enchant.useCallback()) {
                         callback = true;

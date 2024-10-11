@@ -3,6 +3,7 @@ package eu.xap3y.prison.api.enchants;
 import eu.xap3y.prison.Prison;
 import eu.xap3y.prison.api.enums.EnchantType;
 import eu.xap3y.prison.api.interfaces.EnchantInterface;
+import eu.xap3y.prison.manager.CooldownManager;
 import eu.xap3y.prison.services.BoardService;
 import eu.xap3y.prison.services.BreakService;
 import eu.xap3y.prison.services.LevelService;
@@ -24,6 +25,8 @@ public class EnhancerEnchant implements EnchantInterface {
 
     @Override
     public boolean start(Location loc, Player p0, Block lastBlock, Cell cell) {
+
+        CooldownManager.setCooldown(p0);
 
         // 75% chance to return
         if (Math.random() < 0.75) {

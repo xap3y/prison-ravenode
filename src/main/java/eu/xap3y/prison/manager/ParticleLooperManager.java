@@ -6,7 +6,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,13 +34,21 @@ public class ParticleLooperManager {
         this.p0 = player;
     }
 
+    private BukkitTask task;
+
     public void init() {
-        Bukkit.getScheduler().runTaskTimerAsynchronously(Prison.INSTANCE, () -> {
-            for (Location loc : locationList) {
+        task = Bukkit.getScheduler().runTaskTimerAsynchronously(Prison.INSTANCE, () -> {
+            Location[] locTemp = locationList.toArray(new Location[0]);
+            for (Location loc : locTemp) {
                 Prison.parApi.LIST_1_8.REDSTONE
                         .packetColored(false, loc, Color.RED)
                         .sendTo(p0);
             }
         }, 0L, 3L);
+    }
+
+    public void destroy() {
+        locationList.clear();
+        task.cancel();
     }
 }

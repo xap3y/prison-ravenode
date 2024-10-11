@@ -318,6 +318,22 @@ public class RootCommand {
         Bukkit.getScheduler().runTask(Prison.INSTANCE, () -> player.setGameMode(GameMode.SURVIVAL));
     }
 
+    @Debug
+    @Command("fly")
+    public void flyToggle(
+            CommandSender p0
+    ) {
+        if (!(p0 instanceof Player player)) {
+            Prison.texter.response(p0, ConfigDb.ONLY_PLAYER);
+            return;
+        }
+
+        Bukkit.getScheduler().runTask(Prison.INSTANCE, () -> {
+            player.setAllowFlight(true);
+            player.setFlying(true);
+        });
+    }
+
 
     /*@Command("test")
     @CommandDescription("Test Prison command")
