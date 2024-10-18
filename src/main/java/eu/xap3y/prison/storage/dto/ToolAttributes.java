@@ -1,6 +1,7 @@
 package eu.xap3y.prison.storage.dto;
 
 import eu.xap3y.prison.storage.ConfigDb;
+import eu.xap3y.prison.util.Utils;
 import eu.xap3y.xalib.managers.Texter;
 import lombok.Data;
 import org.bukkit.Material;
@@ -40,7 +41,7 @@ public class ToolAttributes {
 
         meta.setAttributeModifiers(material.getDefaultAttributeModifiers(material.getEquipmentSlot()));
 
-        String name = String.format(ConfigDb.TOOL_NAME_PATTERN, this.name, ConfigDb.levelNameMapper[level]);
+        String name = String.format(ConfigDb.TOOL_NAME_PATTERN, this.name, Utils.intToRoman(level));
 
         meta.setDisplayName(Texter.colored(name));
 

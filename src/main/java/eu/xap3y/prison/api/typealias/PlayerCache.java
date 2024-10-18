@@ -5,13 +5,13 @@ import org.apache.commons.lang3.tuple.MutablePair;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class PlayerCache extends HashMap<UUID, MutablePair<Double, Double>> {
+public class PlayerCache extends HashMap<UUID, MutablePair<Double, Float>> {
 
     public PlayerCache() {
         super();
     }
 
-    public double getMultiplier(UUID id) {
+    public float getMultiplier(UUID id) {
         return this.get(id).getRight();
     }
 
@@ -19,7 +19,7 @@ public class PlayerCache extends HashMap<UUID, MutablePair<Double, Double>> {
         return this.get(id).getLeft();
     }
 
-    public void setMultiplier(UUID id, double multiplier) {
+    public void setMultiplier(UUID id, float multiplier) {
         this.get(id).setRight(multiplier);
     }
 
@@ -27,7 +27,7 @@ public class PlayerCache extends HashMap<UUID, MutablePair<Double, Double>> {
         this.get(id).setLeft(requiredXp);
     }
 
-    public void put(UUID id, double requiredXp, double multiplier) {
+    public void put(UUID id, double requiredXp, float multiplier) {
         this.put(id, new MutablePair<>(requiredXp, multiplier));
     }
 

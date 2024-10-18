@@ -13,17 +13,21 @@ import eu.xap3y.prison.services.LevelService;
 import eu.xap3y.prison.storage.ConfigDb;
 import eu.xap3y.prison.storage.PlayerStorage;
 import eu.xap3y.prison.storage.dto.Cell;
+import eu.xap3y.prison.storage.dto.ToolDto;
 import eu.xap3y.prison.util.Utils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.incendo.cloud.annotations.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class RootCommand {
@@ -249,6 +253,30 @@ public class RootCommand {
     }
 
     @Debug
+    @Command("prison giveAllTest")
+    public void giveAllTest(CommandSender p0) {
+        if (!(p0 instanceof Player player)) {
+            Prison.texter.response(p0, ConfigDb.ONLY_PLAYER);
+            return;
+        }
+
+        List<ItemStack> items = new ArrayList<>();
+        int i = 0;
+        for (EnchantType ignored : EnchantType.values()) {
+            i++;
+            String name = String.format(ConfigDb.TOOL_NAME_PATTERN, "Iron Pickaxe", Utils.intToRoman(1));
+            int finalI = i;
+            ItemStack item = Utils.constructTool(new ToolDto(Material.IRON_PICKAXE, name, 1, null, new HashMap<>() {{
+                put(Enchantment.LOOT_BONUS_BLOCKS, finalI);
+                put(Enchantment.DIG_SPEED, finalI);
+            }}));
+            items.add(item);
+        }
+
+        player.getInventory().addItem(items.toArray(new ItemStack[0]));
+    }
+
+    @Debug
     @Command("prison giveTest [type]")
     public void giveTest(
             CommandSender p0,
@@ -264,15 +292,10 @@ public class RootCommand {
         }
 
         //Cell cell = CellService.cellMapper.get(cellType);
-        ItemStack modifiedItem = ConfigDb.getAdvancedPickaxe(type);
-        ItemMeta meta = modifiedItem.getItemMeta();
-        List<Component> listOfLore = new ArrayList<>() {{
-            add(Component.empty());
-            add(Component.text("§7Enchant: §b" + type.name().toUpperCase()));
-        }};
-        meta.lore(listOfLore);
-        modifiedItem.setItemMeta(meta);
-        player.getInventory().addItem(modifiedItem);
+
+        String name = String.format(ConfigDb.TOOL_NAME_PATTERN, "Iron Pickaxe", Utils.intToRoman(1));
+        ItemStack item = Utils.constructTool(new ToolDto(Material.IRON_PICKAXE, name, 1, new EnchantType[]{type}, null));
+        player.getInventory().addItem(item);
     }
 
     @Debug
@@ -332,6 +355,23 @@ public class RootCommand {
             player.setAllowFlight(true);
             player.setFlying(true);
         });
+    }
+
+    @Debug
+    @Command("prison resetPlayer [player]")
+    public void resetPlayer(
+            CommandSender p0,
+            @Argument("player") Player player
+    ) {
+        if (player == null) {
+            Prison.texter.response(p0, "&cInvalid player &7(&c/prison resetPlayer <player>&7)");
+            return;
+        }
+
+        PlayerStorage.economy.get(player.getUniqueId()).reset();
+        PlayerStorage.savePlayers();
+        BoardService.updateBoard(player.getUniqueId(), false);
+        Prison.texter.response(p0, "Player " + player.getName() + " has been reset");
     }
 
 

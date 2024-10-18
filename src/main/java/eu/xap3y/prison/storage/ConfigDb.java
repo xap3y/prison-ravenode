@@ -5,9 +5,11 @@ import eu.xap3y.prison.api.enums.EnchantType;
 import eu.xap3y.prison.api.enums.UpgradeSolution;
 import eu.xap3y.prison.api.interfaces.Debug;
 import eu.xap3y.prison.api.persistents.ToolEnchantType;
+import eu.xap3y.prison.api.typealias.PairArray;
 import eu.xap3y.prison.storage.dto.ToolAttributes;
 import eu.xap3y.prison.storage.dto.UpgradeRes;
 import eu.xap3y.xagui.models.GuiButton;
+import kotlin.Pair;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -19,8 +21,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 
-import static javax.swing.UIManager.put;
-
 
 public class ConfigDb {
 
@@ -30,37 +30,41 @@ public class ConfigDb {
 
     public static final ItemStack WAND = new GuiButton(Material.BLAZE_ROD).setName("&b&lWand").setLore("", "&7Select two points to create mine").getItem();
 
-    public static Location loc1;
-    public static Location loc2;
-
-    public static Location spawn; // A.K.A lobby
+    public static Location loc1, loc2, spawn;
 
     public static int resetDelay = 6000;
 
     public static ToolEnchantType enchantTypeArrayDataType = new ToolEnchantType();
 
-    public static final String TOOL_NAME_PATTERN = "&f&l%s  &7&l(&b&l%s&7&l)";
-    public static final String[] levelNameMapper = {
-            "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"
-    };
+    public static final String TOOL_NAME_PATTERN = "&f&l%s &7&l(&b&l%s&7&l)";
+
+    public static final PairArray fortuneMapper = new PairArray() {{
+        add(new Pair<>(1.2f, 30));
+        add(new Pair<>(1.6f, 40));
+        add(new Pair<>(2f, 55));
+        add(new Pair<>(2.3f, 60));
+        add(new Pair<>(2.8f, 70));
+        add(new Pair<>(3.2f, 75));
+        add(new Pair<>(3.8f, 80));
+        add(new Pair<>(4f, 90));
+    }};
 
     @Nullable
     public static Player lastPlayer = null;
 
-    @SuppressWarnings("deprecation")
     public static ItemStack getDefaultPickaxe(int level) {
         return toolMapper.get(level).getTool();
     }
 
     @Debug
     public static ItemStack getAdvancedPickaxe(EnchantType type) {
-        ItemStack item = getDefaultPickaxe(0);
+        ItemStack item = getDefaultPickaxe(1);
         ItemMeta meta = item.getItemMeta();
         //meta.addEnchant(Enchantment.DIG_SPEED, 5, true);
         if (type != EnchantType.ALL)
             meta.getPersistentDataContainer().set(PRISON_ENCH_KEY, enchantTypeArrayDataType, new EnchantType[]{type});
         else
-            meta.getPersistentDataContainer().set(PRISON_ENCH_KEY, enchantTypeArrayDataType, new EnchantType[]{EnchantType.TNT, EnchantType.TEST});
+            meta.getPersistentDataContainer().set(PRISON_ENCH_KEY, enchantTypeArrayDataType, new EnchantType[]{EnchantType.TNT, EnchantType.BLAST_BREAKER});
         meta.getPersistentDataContainer().set(PRISON_TOOL_LEVEL_KEY, PersistentDataType.INTEGER, 1);
         item.setItemMeta(meta);
 
@@ -70,6 +74,7 @@ public class ConfigDb {
     public static final NamespacedKey PRISON_ENCH_KEY = new NamespacedKey(Prison.INSTANCE, "prison_ench");
     public static final NamespacedKey PRISON_TOOL_LEVEL_KEY = new NamespacedKey(Prison.INSTANCE, "tool_level");
 
+    @Debug // TODO: Migrate to ToolDto
     public static final HashMap<Integer, ToolAttributes> toolMapper = new HashMap<>() {{
        put(0, new ToolAttributes("Iron Pickaxe", Material.IRON_PICKAXE, 0));
        put(1, new ToolAttributes("Iron Pickaxe", Material.IRON_PICKAXE, 1));
@@ -81,6 +86,7 @@ public class ConfigDb {
 
     public static final HashMap<UpgradeSolution, UpgradeRes> upgradeResMapper = new HashMap<>() {{
         put(UpgradeSolution.ALLOWED, new UpgradeRes(DEFAULT_UPGRADE.clone().setName("&a&lUpgrade"), true));
+        put(UpgradeSolution.COMPLETED, new UpgradeRes(DEFAULT_UPGRADE.clone().setName("&a&lUpgraded").setLore("", "&eUpgrade was completed"), false));
         put(UpgradeSolution.WRONG_ITEM, new UpgradeRes(DEFAULT_UPGRADE_ERROR.clone().setLore(" ", "&fWrong tool!"), false));
         put(UpgradeSolution.INVALID_ITEM, new UpgradeRes(DEFAULT_UPGRADE_ERROR.clone().setLore(" ", "&fInvalid tool!"), false));
         put(UpgradeSolution.NO_ITEM, new UpgradeRes(DEFAULT_UPGRADE.clone().setName("&a&lUpgrade").setLore(" ", "&fInsert item"), false));
@@ -115,7 +121,6 @@ public class ConfigDb {
     }};*/
 
     // HEADS BASE64
-
     public static final String BARRIER = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvM2VkMWFiYTczZjYzOWY0YmM0MmJkNDgxOTZjNzE1MTk3YmUyNzEyYzNiOTYyYzk3ZWJmOWU5ZWQ4ZWZhMDI1In19fQ==";
     public static final String BACK = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmQ2OWUwNmU1ZGFkZmQ4NGU1ZjNkMWMyMTA2M2YyNTUzYjJmYTk0NWVlMWQ0ZDcxNTJmZGM1NDI1YmMxMmE5In19fQ==";
     public static final String CRATES = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2UyZWI0NzUxZTNjNTBkNTBmZjE2MzUyNTc2NjYzZDhmZWRmZTNlMDRiMmYwYjhhMmFhODAzYjQxOTM2M2NhMSJ9fX0=";

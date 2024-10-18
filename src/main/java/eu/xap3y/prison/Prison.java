@@ -7,9 +7,10 @@ import com.google.gson.GsonBuilder;
 import eu.xap3y.prison.api.enchants.Demonistic;
 import eu.xap3y.prison.api.enchants.EnhancerEnchant;
 import eu.xap3y.prison.api.enchants.ExplosiveEnchant;
-import eu.xap3y.prison.api.enchants.TestEnchant;
+import eu.xap3y.prison.api.enchants.BlastBreakerEnchant;
 import eu.xap3y.prison.api.enums.EnchantType;
 import eu.xap3y.prison.api.gui.StaticItems;
+import eu.xap3y.prison.api.interfaces.Debug;
 import eu.xap3y.prison.commands.RootCommand;
 import eu.xap3y.prison.listeners.*;
 import eu.xap3y.prison.manager.CommandManager;
@@ -47,9 +48,20 @@ public final class Prison extends JavaPlugin {
     public static final String ver = "@VERSION@";
     public static final String main = "@MAIN@";
 
+    @Debug
     public static final boolean DEBUG = false;
 
     public static ParticleNativeAPI parApi;
+
+    @Debug
+    @Override
+    public void onLoad() {
+        if (DEBUG) {
+            org.apache.logging.log4j.Logger rootLogger = org.apache.logging.log4j.LogManager.getRootLogger();
+            org.apache.logging.log4j.core.Logger logger = (org.apache.logging.log4j.core.Logger) rootLogger;
+            logger.addFilter(new LogLogger());
+        }
+    }
 
     @Override
     public void onEnable() {
@@ -104,15 +116,9 @@ public final class Prison extends JavaPlugin {
 
         CellService.loadCellsLocs();
 
-        if (DEBUG) {
-            org.apache.logging.log4j.Logger rootLogger = org.apache.logging.log4j.LogManager.getRootLogger();
-            org.apache.logging.log4j.core.Logger logger = (org.apache.logging.log4j.core.Logger) rootLogger;
-            logger.addFilter(new LogLogger());
-        }
-
         registerPapi();
 
-        EnchantManager.registerEnchant(EnchantType.TEST, new TestEnchant());
+        EnchantManager.registerEnchant(EnchantType.BLAST_BREAKER, new BlastBreakerEnchant());
         EnchantManager.registerEnchant(EnchantType.TNT, new ExplosiveEnchant());
         EnchantManager.registerEnchant(EnchantType.ENHANCER, new EnhancerEnchant());
         EnchantManager.registerEnchant(EnchantType.DEMON, new Demonistic());
@@ -133,6 +139,7 @@ public final class Prison extends JavaPlugin {
         // Load lobby on join
         PlayerListener.lobbyOnJoin = getConfig().getBoolean("teleport-join", false);
 
+        // TODO: fix
         ConfigDb.resetDelay = getConfig().getInt("mines.reset-delay", 6000);
     }
 

@@ -94,6 +94,13 @@ public class StaticItems {
                 .setLore(" ", "&eClick to open");
     }
 
+    public static ItemStack getMainMenuItem() {
+        return new GuiButton(Material.NETHER_STAR)
+                .setName("&6&lPrison Menu")
+                .setLore(" ", "&eClick to open")
+                .getItem();
+    }
+
     public static ItemStack getLeaderBoardItem(LeaderBoardType type) {
 
         String[] numbering = {"&e①", "&6②", "&c③", "&f④", "&f⑤"};
@@ -115,15 +122,15 @@ public class StaticItems {
         lore.add("");
         for (LeaderBoardType val : LeaderBoardType.values()) {
             if (val != type) {
-                lore.add("  &c" + val.name());
+                lore.add("   &c" + val.getLabel());
             } else {
-                lore.add(" &3➸ &a" + val.name());
+                lore.add(" &3➸ &a" + val.getLabel());
             }
         }
 
 
         return new GuiButton(Material.OAK_SIGN)
-                .setName("&6&lLeaderboard &f(" + type.name() + ")")
+                .setName("&6&lLeaderboard")
                 .setLoreList(lore)
                 .getItem();
     }

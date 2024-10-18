@@ -1,19 +1,20 @@
 package eu.xap3y.prison.listeners;
 
 import eu.xap3y.prison.api.gui.ItemUpgraderGui;
+import eu.xap3y.prison.api.gui.MainGui;
+import eu.xap3y.prison.api.gui.StaticItems;
 import eu.xap3y.prison.services.BoardService;
 import eu.xap3y.prison.services.LevelService;
 import eu.xap3y.prison.storage.ConfigDb;
 import eu.xap3y.prison.storage.PlayerStorage;
 import eu.xap3y.xalib.managers.Texter;
 import org.apache.commons.lang3.tuple.MutablePair;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerChatEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -37,8 +38,10 @@ public class PlayerListener implements Listener {
         );
 
         if (!event.getPlayer().hasPlayedBefore() || event.getPlayer().getInventory().isEmpty()) {
-            event.getPlayer().getInventory().setItem(0, ConfigDb.getDefaultPickaxe(0));
+            event.getPlayer().getInventory().setItem(0, ConfigDb.getDefaultPickaxe(1));
         }
+
+        event.getPlayer().getInventory().setItem(8, StaticItems.getMainMenuItem());
 
         BoardService.addBoard(event.getPlayer());
     }
@@ -56,6 +59,13 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
+
+        if (event.getItem() != null && event.getItem().isSimilar(StaticItems.getMainMenuItem())) {
+            event.setCancelled(true);
+            MainGui.openGui(event.getPlayer());
+            return;
+        }
+
         if (event.getItem() == null || !event.getAction().isRightClick() || !event.getPlayer().isSneaking()) return;
 
         ItemStack item = event.getItem();
@@ -70,5 +80,30 @@ public class PlayerListener implements Listener {
         ItemUpgraderGui.buildGui(item.clone()).open(event.getPlayer());
 
         event.getItem().setAmount(0);
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onInventoryClick(InventoryClickEvent event) {
+
+        if (event.getClickedInventory() == null) return;
+
+        int slotClicked = event.getRawSlot();
+        if(slotClicked < event.getClickedInventory().getSize()) {
+            return;
+        }
+
+        if (event.getSlot() == 8) {
+            event.setCancelled(true);
+            Player p0 = (Player) event.getWhoClicked();
+            p0.closeInventory();
+            MainGui.openGui(p0);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onInventoryClick(PlayerDropItemEvent event) {
+        if (event.getItemDrop().getItemStack().isSimilar(StaticItems.getMainMenuItem())) {
+            event.setCancelled(true);
+        }
     }
 }

@@ -1,10 +1,15 @@
 package eu.xap3y.prison.services;
 
+import eu.xap3y.prison.storage.ConfigDb;
 import eu.xap3y.prison.storage.PlayerStorage;
 import eu.xap3y.prison.storage.dto.Block;
 import eu.xap3y.prison.util.Utils;
 import org.bukkit.Sound;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.Random;
 
 
 public class BreakService {
@@ -12,7 +17,19 @@ public class BreakService {
     private static double multiplierAdder = 0.0;
 
     public static void process(Block block, Player p0, boolean sound) {
-        final double multiplier = LevelService.playerCache.getMultiplier(p0.getUniqueId());
+
+        final ItemStack tool = p0.getInventory().getItemInMainHand();
+
+        float multiplier = LevelService.playerCache.getMultiplier(p0.getUniqueId());
+
+        if (tool.getItemMeta().hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
+            int lootLvl = tool.getEnchantmentLevel(Enchantment.LOOT_BONUS_BLOCKS);
+            int chance = ConfigDb.fortuneMapper.getChance(lootLvl);
+
+            if (new Random().nextInt(100) < chance) {
+                multiplier += ConfigDb.fortuneMapper.getMultiplier(lootLvl)-1f;
+            }
+        }
 
         final double xp = Utils.fixDecimals(block.getXp() * (multiplier + multiplierAdder));
 

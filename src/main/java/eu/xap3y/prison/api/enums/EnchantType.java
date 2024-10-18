@@ -1,12 +1,18 @@
 package eu.xap3y.prison.api.enums;
 
-public enum EnchantType {
-    TNT(""),
-    TEST(""),
-    ENHANCER(""),
-    DEMON(""),
-    ALL("");
+import lombok.Getter;
 
-    EnchantType(String description) {
+@Getter
+public enum EnchantType {
+    TNT("Explosive"),
+    BLAST_BREAKER("Blast Breaker"),
+    ENHANCER("Enhancer"),
+    DEMON("Satanic"),
+    ALL("All");
+
+    private final String label;
+
+    EnchantType(String label) {
+        this.label = label;
     }
 }

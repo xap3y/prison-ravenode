@@ -10,6 +10,7 @@ public class UpgradeRes {
     public GuiButton button;
     public boolean upgradable;
 
+    public ToolDto tool;
     public int cost;
     public int newLevel;
 

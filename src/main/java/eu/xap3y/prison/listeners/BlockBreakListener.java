@@ -94,6 +94,7 @@ public class BlockBreakListener implements Listener {
                     }
                 }
             }
+            CooldownManager.setCooldown(event.getPlayer());
         }
 
         Integer level =  event.getPlayer().getInventory().getItemInMainHand().getItemMeta().getPersistentDataContainer().get(ConfigDb.PRISON_TOOL_LEVEL_KEY, PersistentDataType.INTEGER);

@@ -1,18 +1,24 @@
 package eu.xap3y.prison.util;
 
 import eu.xap3y.prison.Prison;
+import eu.xap3y.prison.api.enums.EnchantType;
 import eu.xap3y.prison.api.enums.LeaderBoardType;
+import eu.xap3y.prison.storage.ConfigDb;
 import eu.xap3y.prison.storage.PlayerStorage;
+import eu.xap3y.prison.storage.dto.ToolDto;
+import eu.xap3y.xagui.models.GuiButton;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -48,7 +54,71 @@ public class Utils {
         put(Material.NETHERITE_BLOCK, Material.ANCIENT_DEBRIS);
     }};
 
+    public static @Nullable ToolDto deserializeTool(ItemStack item) {
+        EnchantType[] enchants = item.getItemMeta().getPersistentDataContainer().get(ConfigDb.PRISON_ENCH_KEY, ConfigDb.enchantTypeArrayDataType);
+        if (enchants == null) {
+            return null;
+        }
 
+        Integer level = item.getItemMeta().getPersistentDataContainer().get(ConfigDb.PRISON_TOOL_LEVEL_KEY, PersistentDataType.INTEGER);
+
+        if (level == null) {
+            return null;
+        }
+
+        String name = item.getItemMeta().getDisplayName();
+
+        return new ToolDto(item.getType(), name, level, enchants, item.getItemMeta().getEnchants());
+    }
+
+    public static ItemStack constructTool(ToolDto tool) {
+        ItemStack item = new GuiButton(tool.getMaterial())
+                .setName(tool.getName())
+                .getItem();
+
+        ArrayList<Component> loreBuilder = new ArrayList<>() {{
+            add(Component.empty());
+            add(Component.text("§7Level: §b" + tool.getLevel()));
+        }};
+
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(ConfigDb.PRISON_TOOL_LEVEL_KEY, PersistentDataType.INTEGER, tool.getLevel());
+        meta.setAttributeModifiers(tool.getMaterial().getDefaultAttributeModifiers(tool.getMaterial().getEquipmentSlot()));
+
+        if (tool.enchantments != null && !tool.enchantments.isEmpty()) {
+            loreBuilder.add(Component.empty());
+            loreBuilder.add(Component.text("§fEnchantments:"));
+            tool.enchantments.forEach((e, lvl) -> {
+                loreBuilder.add(Component.text(" §7• §b" + e.getKey().getKey() + " §9" + intToRoman(lvl)));
+                meta.addEnchant(e, lvl, true);
+            });
+        }
+
+        if (tool.getEnchants() != null) {
+            meta.getPersistentDataContainer().set(ConfigDb.PRISON_ENCH_KEY, ConfigDb.enchantTypeArrayDataType, tool.getEnchants());
+
+            loreBuilder.add(Component.empty());
+            loreBuilder.add(Component.text("§7Special Enchants:"));
+            for (EnchantType enchant : tool.getEnchants()) {
+                if (enchant == null) continue;
+                loreBuilder.add(Component.text(" §7• §b" + enchant.getLabel()));
+            }
+        }
+
+        meta.setUnbreakable(true);
+        meta.addItemFlags(
+                ItemFlag.HIDE_ENCHANTS,
+                ItemFlag.HIDE_ATTRIBUTES,
+                ItemFlag.HIDE_ITEM_SPECIFICS,
+                ItemFlag.HIDE_UNBREAKABLE,
+                ItemFlag.HIDE_DESTROYS
+        );
+
+
+        meta.lore(loreBuilder);
+        item.setItemMeta(meta);
+        return item;
+    }
 
     public static String getMcVersion() {
         String version = "";
@@ -133,5 +203,21 @@ public class Utils {
             particleLoc.setZ((location.getZ() + Math.sin(d) * size) + 0.5);
             return particleLoc;
         });
+    }
+
+    public static String intToRoman(int num) {
+        int[] n = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
+        String[] s = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
+        int i = 0;
+        StringBuilder str = new StringBuilder();
+        while (num>0){
+            if (num>=n[i]){
+                str.append(s[i]);
+                num-=n[i];
+            } else{
+                i++;
+            }
+        }
+        return str.toString();
     }
 }

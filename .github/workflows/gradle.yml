@@ -1,0 +1,46 @@
+name: Java CI with Gradle
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    buildRelese:
+        runs-on: ubuntu-latest
+        environment: dev
+        steps:
+            - uses: actions/checkout@v4.2.1
+            - name: Set up JDK 21
+              uses: actions/setup-java@v4.4.0
+              with:
+                  java-version: '21'
+                  distribution: 'temurin'
+
+            - name: validate gradle wrapper
+              uses: gradle/actions/wrapper-validation@v3
+
+            - name: Setup Gradle
+              uses: gradle/actions/setup-gradle@v4
+
+            - name: Build with gradle
+              run: ./gradlew build
+
+            - name: Upload standalone artifact
+              uses: actions/upload-artifact@v4.4.3
+              with:
+                name: standalone-binary
+                path: ./build/libs/*.jar
+
+            - name: Automatic Releases
+              uses: "marvinpinto/action-automatic-releases@latest"
+              with:
+                  repo_token: "${{ secrets.GITHUB_TOKEN }}"
+                  automatic_release_tag: "b-${{ github.sha }}"
+                  prerelease: false
+                  title: "Development Build ${{ github.sha }}"
+                  files: |
+                      ./build/libs/${{ vars.JAR_NAME }}.jar

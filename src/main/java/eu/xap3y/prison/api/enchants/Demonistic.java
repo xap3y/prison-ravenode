@@ -3,7 +3,6 @@ package eu.xap3y.prison.api.enchants;
 import eu.xap3y.prison.Prison;
 import eu.xap3y.prison.api.enums.EnchantType;
 import eu.xap3y.prison.api.interfaces.EnchantInterface;
-import eu.xap3y.prison.manager.CooldownManager;
 import eu.xap3y.prison.manager.ParticleLooperManager;
 import eu.xap3y.prison.storage.dto.Block;
 import eu.xap3y.prison.storage.dto.Cell;
@@ -29,8 +28,6 @@ public class Demonistic implements EnchantInterface {
     @Override
     public boolean start(Location loc, Player p0, Block lastBlock, Cell cell) {
 
-        CooldownManager.setCooldown(p0);
-
         ParticleLooperManager looper = new ParticleLooperManager(p0);
 
         double size = 7.0;
@@ -38,43 +35,28 @@ public class Demonistic implements EnchantInterface {
         Location middle = loc.clone().add(-0.7, 1, size-3d);
 
         Bukkit.getScheduler().runTaskAsynchronously(Prison.INSTANCE, () -> {
-
-
-            for (int j = 0; j < 3;j++) {
-
-                Location tempY = loc.clone().subtract(0, j, 0);
-
-                for (double x = 0.0; x < 1.0;x+=0.25) {
-                    Location temp = middle.clone().subtract(0,j + 0.25, 0);
-
-                    drawPentagram(temp, size, looper);
-
-                    Bukkit.getScheduler().runTaskAsynchronously(Prison.INSTANCE, () -> {
-                        Utils.summonCircle(tempY, size-3.3, 300).forEach((location -> {
-                            looper.addLocation(location);
-                            try {
-                                Thread.sleep(1);
-                            } catch (InterruptedException e) {
-                                // IGNORE
-                            }
-                        }));
-                    });
-                }
-
-                // break 11x11 blocks from loc variable
-                for (int x = -5; x < 6; x++) {
-                    for (int z = -5; z < 6; z++) {
-                        Location temp = tempY.clone().add(x, 0, z);
-                        if (temp.getBlock().getType().isSolid()) {
-                            Bukkit.getScheduler().runTask(Prison.INSTANCE, () -> temp.getBlock().setType(Material.AIR));
+            for (double x = 0.0; x < 1.0;x+=0.25) {
+                Location temp = middle.clone().subtract(0,0.25, 0);
+                drawPentagram(temp, size, looper);
+                Bukkit.getScheduler().runTaskAsynchronously(Prison.INSTANCE, () -> {
+                    Utils.summonCircle(loc, size-3.3, 300).forEach((location -> {
+                        looper.addLocation(location);
+                        try {
+                            Thread.sleep(1);
+                        } catch (InterruptedException e) {
+                            // IGNORE
                         }
-                    }
-                }
+                    }));
+                });
+            }
 
-                try {
-                    Thread.sleep(300);
-                } catch (InterruptedException e) {
-                    // IGNORE
+            // break 11x11 blocks from loc variable
+            for (int x = -5; x < 6; x++) {
+                for (int z = -5; z < 6; z++) {
+                    Location temp = loc.clone().add(x, 0, z);
+                    if (temp.getBlock().getType().isSolid()) {
+                        Bukkit.getScheduler().runTask(Prison.INSTANCE, () -> temp.getBlock().setType(Material.AIR));
+                    }
                 }
             }
 
@@ -186,12 +168,7 @@ public class Demonistic implements EnchantInterface {
     }
 
     @Override
-    public String getName() {
-        return "&4&lDEMONISTIC";
-    }
-
-    @Override
     public long getCooldown() {
-        return 400L;
+        return 10000L;
     }
 }

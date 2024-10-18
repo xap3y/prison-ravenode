@@ -6,5 +6,7 @@ public enum UpgradeSolution {
     MAX_LEVEL,
     UNKNOWN,
     NO_ITEM,
-    INVALID_ITEM
+    INVALID_ITEM,
+    COMPLETED,
+    NO_MONEY
 }

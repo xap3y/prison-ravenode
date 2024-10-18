@@ -17,20 +17,20 @@ import java.util.UUID;
 public class LevelService {
 
     // Level, XP | money multiplier
-    public static final HashMap<Integer, Double> levelMapper = new HashMap<>() {{
-        put(1, 1.0);
-        put(5, 1.2);
-        put(10, 1.3);
-        put(15, 1.4);
-        put(20, 1.5);
-        put(25, 1.6);
-        put(30, 1.7);
-        put(40, 1.8);
-        put(50, 1.9);
-        put(60, 2.0);
-        put(70, 2.1);
-        put(80, 2.2);
-        put(90, 2.3);
+    public static final HashMap<Integer, Float> levelMapper = new HashMap<>() {{
+        put(1, 1.0f);
+        put(5, 1.2f);
+        put(10, 1.3f);
+        put(15, 1.4f);
+        put(20, 1.5f);
+        put(25, 1.6f);
+        put(30, 1.7f);
+        put(40, 1.8f);
+        put(50, 1.9f);
+        put(60, 2.0f);
+        put(70, 2.1f);
+        put(80, 2.2f);
+        put(90, 2.3f);
     }};
 
     // XP | multiplier
@@ -38,7 +38,7 @@ public class LevelService {
 
     public static final double STARTING_XP = 80d;
 
-    private static double getClosesMultiplier(int level) {
+    private static float getClosesMultiplier(int level) {
         int closestLevel = 1;
         for (int i : levelMapper.keySet()) {
             if (i <= level) {
@@ -106,6 +106,8 @@ public class LevelService {
         BoardService.updateBoard(id, true);
         p0.setLevel(level);
 
+        checkForNewMines(p0);
+
         int temp = Bukkit.getScheduler().runTaskTimerAsynchronously(Prison.INSTANCE, () -> {
 
             if (p0.getExp() == 0.0f)
@@ -121,12 +123,21 @@ public class LevelService {
         }, 40L);
     }
 
-    public static double getMultiplier(UUID id) {
+    private static void checkForNewMines(Player p0) {
+        CellService.cellMapper.values().forEach(cell -> {
+            if (cell.getMinLevel() == PlayerStorage.economy.get(p0.getUniqueId()).getLevel()) {
+                p0.sendMessage(Texter.colored("&e&l&kLL &r&a&lNEW MINE UNLOCKED! &e&l&kLL "));
+                p0.sendMessage(Texter.colored("&eYou have unlocked the &b" + cell.getName() + " &emine!"));
+            }
+        });
+    }
+
+    public static float getMultiplier(UUID id) {
         int level = PlayerStorage.economy.get(id).getLevel();
         return getClosesMultiplier(level);
     }
 
-    public static double getMultiplier(int level) {
+    public static float getMultiplier(int level) {
         return getClosesMultiplier(level);
     }
 

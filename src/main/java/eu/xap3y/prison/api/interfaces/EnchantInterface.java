@@ -17,7 +17,9 @@ public interface EnchantInterface {
     boolean start(Location loc, Player p0, Block lastBlock, Cell cell);
 
 
-    String getName();
+    default String getName() {
+        return getType().getLabel();
+    }
 
     // IN TICKS
     default long getCooldown() {
@@ -26,5 +28,9 @@ public interface EnchantInterface {
 
     default boolean useCallback() {
         return false;
+    }
+
+    default String getDescription() {
+        return "";
     }
 }

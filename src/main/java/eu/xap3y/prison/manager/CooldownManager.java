@@ -1,6 +1,5 @@
 package eu.xap3y.prison.manager;
 
-import eu.xap3y.prison.api.interfaces.EnchantInterface;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;

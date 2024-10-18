@@ -3,9 +3,9 @@ package eu.xap3y.prison.api.enchants;
 import eu.xap3y.prison.Prison;
 import eu.xap3y.prison.api.enums.EnchantType;
 import eu.xap3y.prison.api.interfaces.EnchantInterface;
-import eu.xap3y.prison.manager.CooldownManager;
 import eu.xap3y.prison.services.BoardService;
 import eu.xap3y.prison.services.BreakService;
+import eu.xap3y.prison.services.LevelService;
 import eu.xap3y.prison.storage.StorageManager;
 import eu.xap3y.prison.storage.dto.Block;
 import eu.xap3y.prison.storage.dto.Cell;
@@ -36,7 +36,7 @@ public class ExplosiveEnchant implements EnchantInterface {
 
     @Override
     public long getCooldown() {
-        return 20L; // For debugging purposes
+        return 5000L;
     }
 
     @Override
@@ -46,8 +46,6 @@ public class ExplosiveEnchant implements EnchantInterface {
 
     @Override
     public boolean start(Location loc, Player p0, Block lastBlock, Cell cell) {
-
-        CooldownManager.setCooldown(p0);
 
         //Prison.texter.response(p0, "TNT ENCHANT");
 
@@ -106,14 +104,10 @@ public class ExplosiveEnchant implements EnchantInterface {
                 }
 
                 BoardService.updateBoard(p0.getUniqueId(), false);
+                LevelService.checkLevel(p0.getUniqueId());
                 p0.playSound(p0, Sound.BLOCK_DECORATED_POT_INSERT_FAIL, 1f, 1f);
             }
         });
         return true;
-    }
-
-    @Override
-    public String getName() {
-        return "&c&lEXPLOSIVE";
     }
 }
